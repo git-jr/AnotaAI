@@ -22,9 +22,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alura.anotaai.model.Note
+import com.alura.anotaai.model.sampleNotes
 
 
 class MainActivity : ComponentActivity() {
@@ -33,7 +34,31 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AnotaAITheme {
-                ItemListScreen()
+                var showNoteScreen by remember { mutableStateOf(false) }
+                var noteList by remember { mutableStateOf(sampleNotes) }
+
+//                var itemsList by remember { mutableStateOf(listOf("Item 1", "Item 2", "Item 3")) }
+                var itemCounter by remember { mutableIntStateOf(3) }
+
+                ItemListScreen(
+                    itemsList = noteList,
+                    onNewItemClicked = {
+                        showNoteScreen = true
+                    }
+                )
+
+                if (showNoteScreen) {
+                    NoteScreen(
+                        onBackClicked = { showNoteScreen = false },
+                        onNoteSaved = { note ->
+                            showNoteScreen = false
+                            itemCounter++
+                            noteList = noteList.toMutableList().apply {
+                                add(note)
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -41,21 +66,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ItemListScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    itemsList: List<Note> = emptyList(),
+    onNewItemClicked: () -> Unit = {}
 ) {
-    // State to hold the list of items
-    var itemsList by remember { mutableStateOf(listOf("Item 1", "Item 2", "Item 3")) }
-    var itemCounter by remember { mutableStateOf(4) }
-
     // Scaffold to manage the floating action button and the content
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Add new item to the list when the FAB is clicked
-                    itemsList = itemsList + "Item $itemCounter"
-                    itemCounter += 1
+                    onNewItemClicked()
                 },
                 content = { Icon(Icons.Default.Add, contentDescription = "Add Item") }
             )
@@ -78,7 +99,7 @@ fun ItemListScreen(
 }
 
 @Composable
-fun ItemRow(item: String) {
+fun ItemRow(note: Note) {
     // Single item row layout
     Card(
         modifier = Modifier
@@ -86,7 +107,7 @@ fun ItemRow(item: String) {
 //        elevation = 4.dp
     ) {
         Text(
-            text = item,
+            text = note.title,
             fontSize = 20.sp,
             modifier = Modifier.padding(16.dp)
         )
