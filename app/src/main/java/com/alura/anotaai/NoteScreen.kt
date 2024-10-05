@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,13 +14,17 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -34,11 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alura.anotaai.model.Note
+import com.alura.anotaai.ui.notescreen.ListNotes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +54,8 @@ fun NoteScreen(
 ) {
     // State to hold the note text
     var noteText by remember { mutableStateOf("") }
-
+//    var list1 by remember { mutableStateOf(List(5) { it }) }
+    var list1 by remember { mutableStateOf(listOf("1", "2", "3", "4", "5")) }
 
     Scaffold(
         topBar = {
@@ -79,18 +86,7 @@ fun NoteScreen(
                 }
             )
         },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(vertical = 16.dp, horizontal = 8.dp),
-            ) {
-                MyList()
-            }
-        },
         bottomBar = {
-            // Bottom bar with 3 icon buttons
             BottomAppBar(
                 contentPadding = PaddingValues(16.dp),
                 tonalElevation = 8.dp
@@ -104,7 +100,7 @@ fun NoteScreen(
                     // Icon for adding a photo from the camera
                     IconButton(onClick = { /* Handle camera action */ }) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            painter = painterResource(id = R.drawable.ic_camera),
                             contentDescription = "Add photo from camera"
                         )
                     }
@@ -112,7 +108,7 @@ fun NoteScreen(
                     // Icon for adding an image from the gallery
                     IconButton(onClick = { /* Handle gallery action */ }) {
                         Icon(
-                            imageVector = Icons.Default.DateRange,
+                            painter = painterResource(id = R.drawable.ic_gallery),
                             contentDescription = "Add image from gallery"
                         )
                     }
@@ -120,13 +116,46 @@ fun NoteScreen(
                     // Icon for starting audio recording
                     IconButton(onClick = { /* Handle audio recording action */ }) {
                         Icon(
-                            imageVector = Icons.Default.Phone,
+                            painter = painterResource(id = R.drawable.ic_mic),
                             contentDescription = "Start audio recording"
+                        )
+                    }
+
+                    // Icon for adding a text note
+                    IconButton(onClick = {
+                        list1 = list1.toMutableList().apply {
+                            add(noteText)
+                        }
+                        noteText = ""
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Add text note"
                         )
                     }
                 }
             }
-        }
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(
+                        horizontal = 8.dp
+                    ),
+            ) {
+                ListNotes(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.8f),
+                    noteText = noteText,
+                    onNoteTextChanged = { noteText = it },
+                    list1 = list1,
+                    onNewList = { list1 = it }
+                )
+            }
+        },
     )
 }
 
@@ -136,72 +165,3 @@ fun PreviewNoteScreen() {
     NoteScreen()
 }
 
-@Composable
-fun MyList() {
-    var list1 by remember { mutableStateOf(List(5) { it }) }
-    var noteText by remember { mutableStateOf("") }
-
-    val draggableItems by remember {
-        derivedStateOf { list1.size }
-    }
-    val stateList = rememberLazyListState()
-
-    val dragDropState =
-        rememberDragDropState(
-            lazyListState = stateList,
-            draggableItemsNum = draggableItems,
-            onMove = { fromIndex, toIndex ->
-                list1 = list1.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
-            })
-
-    LazyColumn(
-        modifier = Modifier.dragContainer(dragDropState),
-        state = stateList,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            BasicTextField(
-                value = noteText,
-                onValueChange = { noteText = it },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
-                decorationBox = { innerTextField ->
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        if (noteText.isEmpty()) {
-                            Text(
-                                text = "Escreva sua nota aqui...",
-                                style = LocalTextStyle.current.copy(fontSize = 20.sp)
-                            )
-                        }
-                        innerTextField()
-                    }
-                }
-            )
-        }
-
-        draggableItems(items = list1, dragDropState = dragDropState) { modifier, item ->
-            Item(
-                modifier = modifier,
-                index = item,
-            )
-        }
-
-    }
-}
-
-
-@Composable
-private fun Item(modifier: Modifier = Modifier, index: Int) {
-    Card(
-        modifier = modifier
-    ) {
-        Text(
-            "Item $index",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
-    }
-}
