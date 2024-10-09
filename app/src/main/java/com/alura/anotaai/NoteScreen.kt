@@ -1,5 +1,8 @@
 package com.alura.anotaai
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItem
+import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
 import com.alura.anotaai.ui.notescreen.ListNotes
 
@@ -43,7 +47,6 @@ fun NoteScreen(
 ) {
     var noteText by remember { mutableStateOf("") }
     var noteTextAppBar by remember { mutableStateOf("Nova Nota") }
-
     var noteState by remember {
         mutableStateOf(
             Note(
@@ -68,6 +71,25 @@ fun NoteScreen(
             )
         )
     }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = {
+
+            it?.let { uri ->
+                noteState = noteState.copy(
+                    title = noteTextAppBar,
+                    listItems = noteState.listItems.toMutableList().apply {
+                        add(
+                            NoteItemImage(
+                                link = uri.toString(),
+                            )
+                        )
+                    }
+                )
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -130,7 +152,10 @@ fun NoteScreen(
                     }
 
                     // Icon for adding an image from the gallery
-                    IconButton(onClick = { /* Handle gallery action */ }) {
+                    IconButton(onClick = {
+                    /* Handle gallery action */
+                        pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_gallery),
                             contentDescription = "Add image from gallery"
