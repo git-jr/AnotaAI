@@ -23,8 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alura.anotaai.model.Note
-import com.alura.anotaai.model.sampleNotes
+import com.alura.anotaai.model.NoteItem
+import com.alura.anotaai.model.sampleNoteItems
 
 
 class MainActivity : ComponentActivity() {
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AnotaAITheme {
                 var showNoteScreen by remember { mutableStateOf(false) }
-                var noteList by remember { mutableStateOf(sampleNotes) }
+                var noteList by remember { mutableStateOf(sampleNoteItems) }
 
 //                var itemsList by remember { mutableStateOf(listOf("Item 1", "Item 2", "Item 3")) }
                 var itemCounter by remember { mutableIntStateOf(3) }
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ItemListScreen(
     modifier: Modifier = Modifier,
-    itemsList: List<Note> = emptyList(),
+    itemsList: List<NoteItem> = emptyList(),
     onNewItemClicked: () -> Unit = {}
 ) {
     // Scaffold to manage the floating action button and the content
@@ -98,7 +98,7 @@ fun ItemListScreen(
 }
 
 @Composable
-fun ItemRow(note: Note) {
+fun ItemRow(noteItem: NoteItem) {
     // Single item row layout
     Card(
         modifier = Modifier
@@ -106,7 +106,7 @@ fun ItemRow(note: Note) {
 //        elevation = 4.dp
     ) {
         Text(
-            text = note.title,
+            text = noteItem.title,
             fontSize = 20.sp,
             modifier = Modifier.padding(16.dp)
         )

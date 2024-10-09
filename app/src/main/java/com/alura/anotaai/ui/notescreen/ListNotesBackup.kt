@@ -3,13 +3,11 @@ package com.alura.anotaai.ui.notescreen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Card
@@ -17,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,23 +23,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import com.alura.anotaai.dragContainer
+import com.alura.anotaai.draggableItems
 import com.alura.anotaai.model.Note
-import com.alura.anotaai.model.NoteItemAudio
-import com.alura.anotaai.model.NoteItemImage
-import com.alura.anotaai.model.NoteItemText
-import com.alura.anotaai.model.NoteType
+import com.alura.anotaai.rememberDragDropState
 
 @Composable
-fun ListNotes(
+fun ListNotesBackup(
     modifier: Modifier = Modifier,
     noteText: String = "",
     onNoteTextChanged: (String) -> Unit = {},
-    noteState: Note = Note(),
+    list1: List<String> = emptyList(),
+    onNewList: (List<String>) -> Unit
 ) {
+
+    val noteState = remember { mutableStateOf(Note()) }
+
+    val draggableItems by remember {
+        derivedStateOf { list1.size }
+    }
     val stateList = rememberLazyListState()
 
+    val dragDropState =
+        rememberDragDropState(
+            lazyListState = stateList,
+            draggableItemsNum = draggableItems,
+            onMove = { fromIndex, toIndex ->
+                val newList = list1.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
+                onNewList(newList)
+            })
+
     LazyColumn(
+        modifier = modifier
+            .dragContainer(dragDropState),
         state = stateList,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -72,99 +87,39 @@ fun ListNotes(
             )
 
         }
-
-        items(noteState.listItems) { item ->
-            when (item.type) {
-                NoteType.TEXT -> {
-                    ItemNoteText(
-                        modifier = Modifier,
-                        item = item as NoteItemText
-                    )
-                }
-
-                NoteType.IMAGE -> {
-                    ItemNoteImage(
-                        modifier = Modifier,
-                        item = item as NoteItemImage,
-                    )
-                }
-
-                NoteType.AUDIO -> {
-                    ItemNoteAudio(
-                        modifier = Modifier,
-                        item = item as NoteItemAudio
-                    )
-                }
-            }
+        draggableItems(items = list1, dragDropState = dragDropState) { modifier, item ->
+            ItemNoteTextBackup(
+                modifier = modifier,
+                item = item,
+            )
         }
+
     }
 }
 
 
 @Composable
-private fun ItemNoteText(
+private fun ItemNoteTextBackup(
     modifier: Modifier = Modifier,
-    item: NoteItemText
+    item: String
 ) {
     Card(
         modifier = modifier
     ) {
         Text(
-            "Item ${item.content}",
+            "Item $item",
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         )
     }
 }
-
-@Composable
-private fun ItemNoteImage(
-    modifier: Modifier = Modifier,
-    item: NoteItemImage
-) {
-    Card(
-        modifier = modifier
-    ) {
-        AsyncImage(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f),
-            model = item.link,
-            contentDescription = null,
-        )
-    }
-}
-
-@Composable
-private fun ItemNoteAudio(
-    modifier: Modifier = Modifier,
-    item: NoteItemAudio
-) {
-    Card(
-        modifier = modifier
-    ) {
-        Text(
-            "Áudio ${item.link} - ${item.duration}",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
-fun ListNotesPreview() {
-    ListNotes(
-        noteState = Note(
-            listItems = listOf(
-                NoteItemText("Texto 1"),
-                NoteItemImage("https://picsum.photos/200"),
-                NoteItemAudio("https://audio.com", 42),
-                NoteItemText("Texto 2"),
-            )
-        )
+fun ListNotesBackupPreview() {
+    ListNotesBackup(
+        list1 = listOf("1", "2", "3"),
+        onNewList = {}
     )
 }
