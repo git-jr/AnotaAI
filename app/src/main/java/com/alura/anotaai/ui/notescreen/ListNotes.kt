@@ -12,8 +12,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,11 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.alura.anotaai.audioDisplay
 import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
@@ -43,7 +49,7 @@ fun ListNotes(
 
     LazyColumn(
         state = stateList,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             Row(
@@ -74,7 +80,7 @@ fun ListNotes(
 
         }
 
-        items(noteState.listItems) { item ->
+        items(noteState.listItems.reversed()) { item ->
             when (item.type) {
                 NoteType.TEXT -> {
                     ItemNoteText(
@@ -111,7 +117,7 @@ private fun ItemNoteText(
         modifier = modifier
     ) {
         Text(
-            "Item ${item.content}",
+            item.content,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -144,14 +150,28 @@ private fun ItemNoteAudio(
     item: NoteItemAudio
 ) {
     Card(
-        modifier = modifier
-    ) {
-        Text(
-            "Áudio ${item.link} - ${item.duration}",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Green.copy(alpha = 0.2f)
         )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Text(
+                "Áudio ${item.duration.audioDisplay()}",
+                modifier = Modifier
+                    .padding(16.dp)
+            )
+            Icon(
+                Icons.Default.PlayArrow,
+                contentDescription = "Play",
+                tint = Color.Black,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 }
 
