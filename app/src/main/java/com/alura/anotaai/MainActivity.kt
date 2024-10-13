@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import com.alura.anotaai.model.NoteItem
 import com.alura.anotaai.model.sampleNoteItems
+import com.alura.anotaai.ui.camera.CameraInitializer
 import java.io.IOException
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
@@ -55,14 +56,12 @@ class MainActivity : ComponentActivity() {
             setOutputFile(fileName)
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
         }
-        val context = this
 
         setContent {
             AnotaAITheme {
                 var showNoteScreen by remember { mutableStateOf(false) }
                 var noteList by remember { mutableStateOf(sampleNoteItems) }
 
-//                var itemsList by remember { mutableStateOf(listOf("Item 1", "Item 2", "Item 3")) }
                 var itemCounter by remember { mutableIntStateOf(3) }
 
                 ItemListScreen(

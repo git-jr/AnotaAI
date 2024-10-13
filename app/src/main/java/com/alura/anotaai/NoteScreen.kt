@@ -1,7 +1,6 @@
 package com.alura.anotaai
 
-import android.media.MediaRecorder
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,9 +44,9 @@ import com.alura.anotaai.model.NoteItem
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
+import com.alura.anotaai.ui.camera.CameraInitializer
 import com.alura.anotaai.ui.notescreen.ListNotes
 import kotlinx.coroutines.delay
-import java.io.IOException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +57,7 @@ fun NoteScreen(
     onStopRecording: () -> Unit = {},
     onPlayRecording: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     var noteText by remember { mutableStateOf("") }
     var noteTextAppBar by remember { mutableStateOf("Nova Nota") }
     var noteState by remember {
@@ -72,6 +71,8 @@ fun NoteScreen(
     var isRecording by remember { mutableStateOf(false) }
     var addAudioNote by remember { mutableStateOf(false) }
     var audioDuration: Int by remember { mutableIntStateOf(0) }
+
+    var showCameraScreen by remember { mutableStateOf(false) }
 
     // para adicionar a nota de áudio ao fim de uma gravação
     LaunchedEffect(isRecording) {
@@ -120,9 +121,6 @@ fun NoteScreen(
             }
         }
     )
-
-    // logica para calcular o tempo de gravação
-    var recorder: MediaRecorder? = null
 
     Scaffold(
         topBar = {
@@ -206,7 +204,7 @@ fun NoteScreen(
                             ) {
                                 // Icon for adding a photo from the camera
                                 IconButton(onClick = {
-                                    onPlayRecording()
+                                    showCameraScreen = true
                                 }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_camera),
@@ -290,6 +288,29 @@ fun NoteScreen(
             }
         },
     )
+
+    if (showCameraScreen) {
+        CameraInitializer(
+            onImageSaved = { filePath ->
+                noteState = noteState.copy(
+                    title = noteTextAppBar,
+                    listItems = noteState.listItems.toMutableList().apply {
+                        add(
+                            NoteItemImage(
+                                link = filePath,
+                            )
+                        )
+                    }
+                )
+                showCameraScreen = false
+            },
+            onError = {
+                Toast.makeText(context, "Erro ao salvar imagem", Toast.LENGTH_SHORT)
+                    .show()
+                showCameraScreen = false
+            }
+        )
+    }
 }
 
 @Preview(showBackground = true)
