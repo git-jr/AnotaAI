@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -30,8 +31,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItem
 import com.alura.anotaai.model.sampleNoteItems
+import com.alura.anotaai.model.sampleNoteItems2
 import java.io.IOException
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
@@ -48,12 +51,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION)
-//        fileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
 
         setContent {
             AnotaAITheme {
                 var showNoteScreen by remember { mutableStateOf(false) }
-                var noteList by remember { mutableStateOf(sampleNoteItems) }
+                val noteList = remember { mutableStateListOf<Note>() }
+                var noteToEdit by remember { mutableStateOf<Note?>(null) }
+
 
                 var itemCounter by remember { mutableIntStateOf(3) }
 
@@ -61,18 +65,21 @@ class MainActivity : ComponentActivity() {
                     itemsList = noteList,
                     onNewItemClicked = {
                         showNoteScreen = true
+                    },
+                    onOpenNote = { note ->
+                        noteToEdit = note
+                        showNoteScreen = true
                     }
                 )
 
                 if (showNoteScreen) {
                     NoteScreen(
+                        noteToEdit = noteToEdit,
                         onBackClicked = { showNoteScreen = false },
                         onNoteSaved = { note ->
                             showNoteScreen = false
                             itemCounter++
-                            noteList = noteList.toMutableList().apply {
-                                add(note)
-                            }
+                            noteList.add(note)
                         },
                         onStartRecording = { audioPath ->
                             startRecording(audioPath)
@@ -161,8 +168,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ItemListScreen(
     modifier: Modifier = Modifier,
-    itemsList: List<NoteItem> = emptyList(),
-    onNewItemClicked: () -> Unit = {}
+    itemsList: List<Note> = emptyList(),
+    onNewItemClicked: () -> Unit = {},
+    onOpenNote: (Note) -> Unit = {}
 ) {
     // Scaffold to manage the floating action button and the content
     Scaffold(
@@ -185,7 +193,12 @@ fun ItemListScreen(
                 contentPadding = PaddingValues(16.dp)
             ) {
                 items(itemsList) { item ->
-                    ItemRow(item)
+                    ItemRow(
+                        note = item,
+                        onClick = {
+                            onOpenNote(item)
+                        }
+                    )
                 }
             }
         }
@@ -193,15 +206,17 @@ fun ItemListScreen(
 }
 
 @Composable
-fun ItemRow(noteItem: NoteItem) {
-    // Single item row layout
+fun ItemRow(
+    note: Note,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
-//        elevation = 4.dp
+            .fillMaxWidth()
+            .clickable { onClick() },
     ) {
         Text(
-            text = noteItem.title,
+            text = note.title,
             fontSize = 20.sp,
             modifier = Modifier.padding(16.dp)
         )

@@ -49,3 +49,10 @@ val sampleNoteItems = listOf(
         ),
     ),
 )
+
+val sampleNoteItems2 = listOf(
+    BaseNote(
+        transcription = "Note 1",
+        type = NoteType.TEXT,
+    ),
+)

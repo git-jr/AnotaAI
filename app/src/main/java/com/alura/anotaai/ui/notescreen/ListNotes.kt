@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
@@ -28,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -50,7 +53,8 @@ fun ListNotes(
     onNoteTextChanged: (String) -> Unit = {},
     noteState: Note = Note(),
     onPlayAudio: (String) -> Unit = {},
-    onStopAudio: () -> Unit = {}
+    onStopAudio: () -> Unit = {},
+    onUpdatedItem: (String, String) -> Unit = { _, _ -> }
 ) {
     val stateList = rememberLazyListState()
 
@@ -92,7 +96,12 @@ fun ListNotes(
                 NoteType.TEXT -> {
                     ItemNoteText(
                         modifier = Modifier,
-                        item = item as NoteItemText
+                        item = item as NoteItemText,
+                        onUpdated = { updatedItemText ->
+                            onUpdatedItem(
+                                updatedItemText, item.id
+                            )
+                        }
                     )
                 }
 
@@ -120,17 +129,62 @@ fun ListNotes(
 @Composable
 private fun ItemNoteText(
     modifier: Modifier = Modifier,
-    item: NoteItemText
+    item: NoteItemText,
+    onUpdated: (String) -> Unit
 ) {
+    var isEditing by remember { mutableStateOf(false) }
+    var stateText by remember { mutableStateOf(item.content) }
     Card(
-        modifier = modifier
+        modifier = modifier,
+        onClick = { isEditing = true }
     ) {
-        Text(
-            item.content,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
+        if (isEditing) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BasicTextField(
+                    modifier = Modifier
+                        .weight(0.8f),
+                    value = stateText,
+                    onValueChange = {
+                        stateText = it
+                    },
+                    textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(16.dp)
+                        ) {
+                            innerTextField()
+                        }
+                    }
+                )
+                IconButton(
+                    onClick = {
+                        isEditing = false
+                        onUpdated(stateText)
+                    },
+                    modifier = Modifier
+                        .weight(0.2f)
+                        .fillMaxHeight()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Close",
+                    )
+                }
+            }
+        } else {
+            Text(
+                item.content,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+        }
     }
 }
 
@@ -139,17 +193,31 @@ private fun ItemNoteImage(
     modifier: Modifier = Modifier,
     item: NoteItemImage
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f),
+        onClick = { expanded = !expanded }
     ) {
-        AsyncImage(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f),
-            model = item.link,
-            contentScale = ContentScale.Crop,
-            contentDescription = item.transcription
-        )
+        if (expanded) {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                model = item.link,
+                contentScale = ContentScale.Fit,
+                contentDescription = item.transcription
+            )
+        } else {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                model = item.link,
+                contentScale = ContentScale.Crop,
+                contentDescription = item.transcription
+            )
+        }
     }
 }
 

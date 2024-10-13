@@ -1,5 +1,6 @@
 package com.alura.anotaai
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -40,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alura.anotaai.model.Note
-import com.alura.anotaai.model.NoteItem
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
@@ -51,8 +51,9 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteScreen(
+    noteToEdit: Note? = Note(),
     onBackClicked: () -> Unit = {},
-    onNoteSaved: (noteItem: NoteItem) -> Unit = {},
+    onNoteSaved: (note: Note) -> Unit = {},
     onStartRecording: (String) -> Unit = {},
     onStopRecording: () -> Unit = {},
     onPlayAudio: (String) -> Unit = {},
@@ -61,12 +62,10 @@ fun NoteScreen(
     val context = LocalContext.current
     var noteText by remember { mutableStateOf("") }
     var noteTextAppBar by remember { mutableStateOf("Nova Nota") }
-    var noteState by remember {
-        mutableStateOf(
-            Note(
-                title = "Título",
-            )
-        )
+    var noteState: Note by remember { mutableStateOf(Note()) }
+    noteToEdit?.let {
+        noteState = it
+        noteTextAppBar = it.title
     }
 
     var isRecording by remember { mutableStateOf(false) }
@@ -150,12 +149,7 @@ fun NoteScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        onNoteSaved(
-                            NoteItem(
-                                title = noteTextAppBar,
-                                description = noteState.title,
-                            )
-                        )
+                        onNoteSaved(noteState.copy(title = noteTextAppBar))
                     }) {
                         Icon(
                             imageVector = Icons.Default.Check,
@@ -289,7 +283,18 @@ fun NoteScreen(
                     noteText = noteText,
                     onNoteTextChanged = { noteText = it },
                     onPlayAudio = onPlayAudio,
-                    onStopAudio = onStopAudio
+                    onStopAudio = onStopAudio,
+                    onUpdatedItem = { updateItem, id ->
+                        // atualizar a lista primeiro
+                        val updatedList = noteState.listItems.map { item ->
+                            if (item.id == id && item is NoteItemText) item.copy(content = updateItem) else item
+                        }
+
+                        // atualizar o estado da nota
+                        noteState = noteState.copy(
+                            listItems = updatedList
+                        )
+                    }
                 )
             }
         },

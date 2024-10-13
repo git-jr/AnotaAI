@@ -64,8 +64,7 @@ fun CameraScreen(
         // 2 Camera Preview
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                ,
+                .fillMaxSize(),
         ) {
             CameraPreview(cameraController)
             // Botão para capturar a foto
@@ -110,14 +109,12 @@ fun CameraScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(56.dp)
-                    ,
+                        .padding(56.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Card(
-                        modifier = Modifier
-                            .clickable { capturedImage = null },
+                        onClick = { capturedImage = null }
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
@@ -132,24 +129,23 @@ fun CameraScreen(
                     }
 
                     Card(
-                        modifier = Modifier
-                            .clickable {
-                                capturedImage?.let {
-                                    saveBitmapToInternalStorage(
-                                        context,
-                                        it,
-                                        onSaved = { filePath ->
-                                            onImageSaved(filePath)
-                                            capturedImage = null
-                                        },
-                                        onError = { message ->
-                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
-                                                .show()
-                                            onError()
-                                        }
-                                    )
-                                }
-                            },
+                        onClick = {
+                            capturedImage?.let {
+                                saveBitmapToInternalStorage(
+                                    context,
+                                    it,
+                                    onSaved = { filePath ->
+                                        onImageSaved(filePath)
+                                        capturedImage = null
+                                    },
+                                    onError = { message ->
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                            .show()
+                                        onError()
+                                    }
+                                )
+                            }
+                        },
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
