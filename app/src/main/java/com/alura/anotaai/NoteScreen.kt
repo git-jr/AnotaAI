@@ -53,9 +53,10 @@ import kotlinx.coroutines.delay
 fun NoteScreen(
     onBackClicked: () -> Unit = {},
     onNoteSaved: (noteItem: NoteItem) -> Unit = {},
-    onStartRecording: () -> Unit = {},
+    onStartRecording: (String) -> Unit = {},
     onStopRecording: () -> Unit = {},
-    onPlayRecording: () -> Unit = {},
+    onPlayAudio: (String) -> Unit = {},
+    onStopAudio: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var noteText by remember { mutableStateOf("") }
@@ -71,6 +72,7 @@ fun NoteScreen(
     var isRecording by remember { mutableStateOf(false) }
     var addAudioNote by remember { mutableStateOf(false) }
     var audioDuration: Int by remember { mutableIntStateOf(0) }
+    var audioPath by remember { mutableStateOf("") }
 
     var showCameraScreen by remember { mutableStateOf(false) }
 
@@ -81,7 +83,7 @@ fun NoteScreen(
                 listItems = noteState.listItems.toMutableList().apply {
                     add(
                         NoteItemAudio(
-                            link = "Áudio",
+                            link = audioPath,
                             duration = audioDuration
                         )
                     )
@@ -233,7 +235,9 @@ fun NoteScreen(
                                         addAudioNote = true
                                         onStopRecording()
                                     } else {
-                                        onStartRecording()
+                                        audioPath =
+                                            "${context.externalCacheDir?.absolutePath}/audio${System.currentTimeMillis()}.acc"
+                                        onStartRecording(audioPath)
                                     }
                                     isRecording = true
                                 }) {
@@ -283,7 +287,9 @@ fun NoteScreen(
                         .weight(0.8f),
                     noteState = noteState,
                     noteText = noteText,
-                    onNoteTextChanged = { noteText = it }
+                    onNoteTextChanged = { noteText = it },
+                    onPlayAudio = onPlayAudio,
+                    onStopAudio = onStopAudio
                 )
             }
         },

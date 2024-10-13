@@ -3,6 +3,7 @@ package com.alura.anotaai
 import android.Manifest
 import android.media.MediaPlayer
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -31,14 +32,14 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import com.alura.anotaai.model.NoteItem
 import com.alura.anotaai.model.sampleNoteItems
-import com.alura.anotaai.ui.camera.CameraInitializer
 import java.io.IOException
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
 class MainActivity : ComponentActivity() {
     private var permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO)
-    private var fileName: String = ""
+
+    //    private var fileName: String = ""
     private var recorder: MediaRecorder? = null
     private var player: MediaPlayer? = null
 
@@ -47,15 +48,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION)
-        fileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
-
-
-        recorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(fileName)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-        }
+//        fileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
 
         setContent {
             AnotaAITheme {
@@ -81,14 +74,17 @@ class MainActivity : ComponentActivity() {
                                 add(note)
                             }
                         },
-                        onStartRecording = {
-                            startRecording()
+                        onStartRecording = { audioPath ->
+                            startRecording(audioPath)
                         },
                         onStopRecording = {
                             stopRecording()
                         },
-                        onPlayRecording = {
-                            startPlaying()
+                        onPlayAudio = { audioPath ->
+                            startPlaying(audioPath)
+                        },
+                        onStopAudio = {
+                            stopPlaying()
                         }
                     )
                 }
@@ -96,25 +92,33 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startRecording() {
+    private fun startRecording(audioPath: String) {
         val context = this
-        recorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(fileName)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-
-            try {
-                prepare()
-                Toast.makeText(context, "Gravando", Toast.LENGTH_SHORT).show()
-            } catch (e: IOException) {
-                Toast.makeText(context, "Erro ao iniciar gravação", Toast.LENGTH_SHORT)
-                    .show()
-                Log.e("LOG_TAG", "prepare() failed")
-            }
-
-            start()
+        val mediaRecorder: MediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaRecorder(context)
+        } else {
+            MediaRecorder()
         }
+        recorder = mediaRecorder
+            .apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setOutputFile(audioPath)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioEncodingBitRate(128000)
+                setAudioSamplingRate(44100)
+
+                try {
+                    prepare()
+                    Toast.makeText(context, "Gravando", Toast.LENGTH_SHORT).show()
+                } catch (e: IOException) {
+                    Toast.makeText(context, "Erro ao iniciar gravação", Toast.LENGTH_SHORT)
+                        .show()
+                    Log.e("LOG_TAG", "prepare() failed")
+                }
+
+                start()
+            }
     }
 
     private fun stopRecording() {
@@ -125,7 +129,7 @@ class MainActivity : ComponentActivity() {
         recorder = null
     }
 
-    private fun startPlaying() {
+    private fun startPlaying(fileName: String) {
         val context = this
         stopPlaying()
 

@@ -13,17 +13,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -37,6 +41,7 @@ import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
 import com.alura.anotaai.model.NoteType
+import kotlinx.coroutines.delay
 
 @Composable
 fun ListNotes(
@@ -44,6 +49,8 @@ fun ListNotes(
     noteText: String = "",
     onNoteTextChanged: (String) -> Unit = {},
     noteState: Note = Note(),
+    onPlayAudio: (String) -> Unit = {},
+    onStopAudio: () -> Unit = {}
 ) {
     val stateList = rememberLazyListState()
 
@@ -99,7 +106,9 @@ fun ListNotes(
                 NoteType.AUDIO -> {
                     ItemNoteAudio(
                         modifier = Modifier,
-                        item = item as NoteItemAudio
+                        item = item as NoteItemAudio,
+                        onPlayAudio = onPlayAudio,
+                        onStopAudio = onStopAudio
                     )
                 }
             }
@@ -147,8 +156,21 @@ private fun ItemNoteImage(
 @Composable
 private fun ItemNoteAudio(
     modifier: Modifier = Modifier,
-    item: NoteItemAudio
+    item: NoteItemAudio,
+    onPlayAudio: (String) -> Unit,
+    onStopAudio: () -> Unit
 ) {
+    var isPlaying by remember { mutableStateOf(false) }
+    val icon = if (isPlaying) Icons.Filled.Close else Icons.Filled.PlayArrow
+
+    // quando o tempo de duração do audio acabar, o isPlaying é setado para false
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            delay(item.duration * 1000L)
+            isPlaying = false
+        }
+    }
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -165,12 +187,23 @@ private fun ItemNoteAudio(
                 modifier = Modifier
                     .padding(16.dp)
             )
-            Icon(
-                Icons.Default.PlayArrow,
-                contentDescription = "Play",
-                tint = Color.Black,
-                modifier = Modifier.padding(16.dp)
-            )
+            IconButton(
+                onClick = {
+                    if (isPlaying) {
+                        onStopAudio()
+                        isPlaying = false
+                    } else {
+                        onPlayAudio(item.link)
+                        isPlaying = true
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "Play",
+                    tint = Color.Black,
+                )
+            }
         }
     }
 }
