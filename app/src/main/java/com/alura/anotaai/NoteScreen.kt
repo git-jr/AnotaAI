@@ -294,6 +294,12 @@ fun NoteScreen(
                         noteState = noteState.copy(
                             listItems = updatedList
                         )
+                    },
+                    onDeletedItem = { id ->
+                        noteState = noteState.copy(
+                            listItems = noteState.listItems.filter { item -> item.id != id }
+                        )
+                        Log.d("NoteScreen", "Item deleted: $noteState")
                     }
                 )
             }

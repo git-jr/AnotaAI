@@ -1,5 +1,6 @@
 package com.alura.anotaai.ui.notescreen
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -33,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,9 +58,11 @@ fun ListNotes(
     noteState: Note = Note(),
     onPlayAudio: (String) -> Unit = {},
     onStopAudio: () -> Unit = {},
-    onUpdatedItem: (String, String) -> Unit = { _, _ -> }
+    onUpdatedItem: (String, String) -> Unit = { _, _ -> },
+    onDeletedItem: (String) -> Unit = {}
 ) {
     val stateList = rememberLazyListState()
+    var itemToDelete by remember { mutableStateOf<String?>(null) }
 
     LazyColumn(
         state = stateList,
@@ -91,7 +97,7 @@ fun ListNotes(
 
         }
 
-        items(noteState.listItems.reversed()) { item ->
+        items(noteState.listItems.reversed(), key = { it.id }) { item ->
             when (item.type) {
                 NoteType.TEXT -> {
                     ItemNoteText(
@@ -101,6 +107,9 @@ fun ListNotes(
                             onUpdatedItem(
                                 updatedItemText, item.id
                             )
+                        },
+                        onDeleted = {
+                            itemToDelete = item.id
                         }
                     )
                 }
@@ -123,20 +132,54 @@ fun ListNotes(
             }
         }
     }
-}
 
+    itemToDelete?.let { itemId ->
+        AlertDialog(
+            onDismissRequest = { itemToDelete = null },
+            title = { Text(text = "Confirmação de Exclusão") },
+            text = { Text("Tem certeza que deseja excluir este item?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        itemToDelete = null
+                        onDeletedItem(itemId)
+                    }
+                ) {
+                    Text("Sim")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { itemToDelete = null }
+                ) {
+                    Text("Não")
+                }
+            }
+        )
+    }
+}
 
 @Composable
 private fun ItemNoteText(
     modifier: Modifier = Modifier,
     item: NoteItemText,
-    onUpdated: (String) -> Unit
+    onUpdated: (String) -> Unit,
+    onDeleted: () -> Unit = {}
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var stateText by remember { mutableStateOf(item.content) }
     Card(
-        modifier = modifier,
-        onClick = { isEditing = true }
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        isEditing = true
+                    },
+                    onLongPress = {
+                        onDeleted()
+                    }
+                )
+            }
     ) {
         if (isEditing) {
             Row(

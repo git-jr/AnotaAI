@@ -32,9 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import com.alura.anotaai.model.Note
-import com.alura.anotaai.model.NoteItem
-import com.alura.anotaai.model.sampleNoteItems
-import com.alura.anotaai.model.sampleNoteItems2
 import java.io.IOException
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
