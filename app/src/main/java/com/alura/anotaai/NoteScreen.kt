@@ -23,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -133,7 +134,10 @@ fun NoteScreen(
                         BasicTextField(
                             value = noteTextAppBar,
                             onValueChange = { noteTextAppBar = it },
-                            textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+                            textStyle = LocalTextStyle.current.copy(
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
                         )
                     }
 
@@ -243,6 +247,7 @@ fun NoteScreen(
 
                                 // Icon for adding a text note
                                 IconButton(onClick = {
+                                    if (noteText.isBlank()) return@IconButton
                                     noteState = noteState.copy(
                                         title = noteTextAppBar,
                                         listItems = noteState.listItems.toMutableList().apply {

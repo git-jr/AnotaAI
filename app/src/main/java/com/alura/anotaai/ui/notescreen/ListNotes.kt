@@ -28,6 +28,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -80,7 +81,7 @@ fun ListNotes(
                 BasicTextField(
                     value = noteText,
                     onValueChange = { onNoteTextChanged(it) },
-                    textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Done
                     ),
@@ -202,7 +203,7 @@ private fun ItemNoteText(
                     onValueChange = {
                         stateText = it
                     },
-                    textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+                    textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier
