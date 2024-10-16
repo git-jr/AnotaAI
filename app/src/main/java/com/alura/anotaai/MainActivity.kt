@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,11 +30,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import coil3.compose.AsyncImage
 import com.alura.anotaai.model.Note
 import java.io.IOException
 
@@ -61,7 +66,7 @@ class MainActivity : ComponentActivity() {
                 var itemCounter by remember { mutableIntStateOf(3) }
 
                 ItemListScreen(
-                    itemsList = noteList,
+                    listNotes = noteList,
                     onNewItemClicked = {
                         noteToEdit = null
                         showNoteScreen = true
@@ -171,7 +176,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ItemListScreen(
     modifier: Modifier = Modifier,
-    itemsList: List<Note> = emptyList(),
+    listNotes: List<Note> = emptyList(),
     onNewItemClicked: () -> Unit = {},
     onOpenNote: (Note) -> Unit = {},
     onDeletedItem: (Note) -> Unit = {}
@@ -188,50 +193,74 @@ fun ItemListScreen(
             )
         },
         content = { paddingValues ->
-            // List of items displayed using LazyColumn
-            var itemToDelete by remember { mutableStateOf<Note?>(null) }
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                items(itemsList) { item ->
-                    ItemRow(
-                        note = item,
-                        onClick = { onOpenNote(item) },
-                        onLongPress = {
-                            itemToDelete = item
-                        }
-                    )
-                }
-            }
-
-            itemToDelete?.let { itemId ->
-                AlertDialog(
-                    onDismissRequest = { itemToDelete = null },
-                    title = { Text(text = "Confirmação de Exclusão") },
-                    text = { Text("Tem certeza que deseja excluir este item?") },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                itemToDelete = null
-                                onDeletedItem(itemId)
-                            }
-                        ) {
-                            Text("Sim")
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = { itemToDelete = null }
-                        ) {
-                            Text("Não")
+            Crossfade(targetState = listNotes.isNotEmpty()) { hasItems ->
+                if (hasItems) {
+                    // List of items displayed using LazyColumn
+                    var itemToDelete by remember { mutableStateOf<Note?>(null) }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(listNotes) { item ->
+                            ItemRow(
+                                note = item,
+                                onClick = { onOpenNote(item) },
+                                onLongPress = {
+                                    itemToDelete = item
+                                }
+                            )
                         }
                     }
-                )
+
+                    itemToDelete?.let { itemId ->
+                        AlertDialog(
+                            onDismissRequest = { itemToDelete = null },
+                            title = { Text(text = "Confirmação de Exclusão") },
+                            text = { Text("Tem certeza que deseja excluir este item?") },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        itemToDelete = null
+                                        onDeletedItem(itemId)
+                                    }
+                                ) {
+                                    Text("Sim")
+                                }
+                            },
+                            dismissButton = {
+                                Button(
+                                    onClick = { itemToDelete = null }
+                                ) {
+                                    Text("Não")
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 150.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AsyncImage(
+                            R.mipmap.ic_launcher_foreground,
+                            contentDescription = "App Logo",
+                            modifier = Modifier.size(300.dp),
+                        )
+
+                        Text(
+                            text = "Crie suas notas clicando no botão abaixo",
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.secondary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     )
