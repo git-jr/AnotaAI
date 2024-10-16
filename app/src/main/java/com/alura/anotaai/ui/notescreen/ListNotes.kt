@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,6 +81,9 @@ fun ListNotes(
                     value = noteText,
                     onValueChange = { onNoteTextChanged(it) },
                     textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done
+                    ),
                     decorationBox = { innerTextField ->
                         Box(modifier = Modifier.fillMaxSize()) {
                             if (noteText.isEmpty()) {
@@ -118,6 +124,9 @@ fun ListNotes(
                     ItemNoteImage(
                         modifier = Modifier,
                         item = item as NoteItemImage,
+                        onDeleted = {
+                            itemToDelete = item.id
+                        }
                     )
                 }
 
@@ -126,7 +135,10 @@ fun ListNotes(
                         modifier = Modifier,
                         item = item as NoteItemAudio,
                         onPlayAudio = onPlayAudio,
-                        onStopAudio = onStopAudio
+                        onStopAudio = onStopAudio,
+                        onDeleted = {
+                            itemToDelete = item.id
+                        }
                     )
                 }
             }
@@ -172,12 +184,8 @@ private fun ItemNoteText(
         modifier = modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {
-                        isEditing = true
-                    },
-                    onLongPress = {
-                        onDeleted()
-                    }
+                    onTap = { isEditing = true },
+                    onLongPress = { onDeleted() }
                 )
             }
     ) {
@@ -234,15 +242,20 @@ private fun ItemNoteText(
 @Composable
 private fun ItemNoteImage(
     modifier: Modifier = Modifier,
-    item: NoteItemImage
+    item: NoteItemImage,
+    onDeleted: () -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
-
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(1f),
-        onClick = { expanded = !expanded }
+            .aspectRatio(1f)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { expanded = !expanded },
+                    onLongPress = { onDeleted() }
+                )
+            },
     ) {
         if (expanded) {
             AsyncImage(
@@ -269,7 +282,8 @@ private fun ItemNoteAudio(
     modifier: Modifier = Modifier,
     item: NoteItemAudio,
     onPlayAudio: (String) -> Unit,
-    onStopAudio: () -> Unit
+    onStopAudio: () -> Unit,
+    onDeleted: () -> Unit = {}
 ) {
     var isPlaying by remember { mutableStateOf(false) }
     val icon = if (isPlaying) Icons.Filled.Close else Icons.Filled.PlayArrow
@@ -283,7 +297,11 @@ private fun ItemNoteAudio(
     }
 
     Card(
-        modifier = modifier,
+        modifier = modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onLongPress = { onDeleted() }
+            )
+        },
         colors = CardDefaults.cardColors(
             containerColor = Color.Green.copy(alpha = 0.2f)
         )
@@ -291,7 +309,7 @@ private fun ItemNoteAudio(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 "Áudio ${item.duration.audioDisplay()}",

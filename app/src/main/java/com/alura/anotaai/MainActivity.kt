@@ -10,7 +10,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -24,10 +24,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -55,17 +58,20 @@ class MainActivity : ComponentActivity() {
                 val noteList = remember { mutableStateListOf<Note>() }
                 var noteToEdit by remember { mutableStateOf<Note?>(null) }
 
-
                 var itemCounter by remember { mutableIntStateOf(3) }
 
                 ItemListScreen(
                     itemsList = noteList,
                     onNewItemClicked = {
+                        noteToEdit = null
                         showNoteScreen = true
                     },
                     onOpenNote = { note ->
                         noteToEdit = note
                         showNoteScreen = true
+                    },
+                    onDeletedItem = { note ->
+                        noteList.remove(note)
                     }
                 )
 
@@ -167,7 +173,8 @@ fun ItemListScreen(
     modifier: Modifier = Modifier,
     itemsList: List<Note> = emptyList(),
     onNewItemClicked: () -> Unit = {},
-    onOpenNote: (Note) -> Unit = {}
+    onOpenNote: (Note) -> Unit = {},
+    onDeletedItem: (Note) -> Unit = {}
 ) {
     // Scaffold to manage the floating action button and the content
     Scaffold(
@@ -182,6 +189,8 @@ fun ItemListScreen(
         },
         content = { paddingValues ->
             // List of items displayed using LazyColumn
+            var itemToDelete by remember { mutableStateOf<Note?>(null) }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -192,11 +201,37 @@ fun ItemListScreen(
                 items(itemsList) { item ->
                     ItemRow(
                         note = item,
-                        onClick = {
-                            onOpenNote(item)
+                        onClick = { onOpenNote(item) },
+                        onLongPress = {
+                            itemToDelete = item
                         }
                     )
                 }
+            }
+
+            itemToDelete?.let { itemId ->
+                AlertDialog(
+                    onDismissRequest = { itemToDelete = null },
+                    title = { Text(text = "Confirmação de Exclusão") },
+                    text = { Text("Tem certeza que deseja excluir este item?") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                itemToDelete = null
+                                onDeletedItem(itemId)
+                            }
+                        ) {
+                            Text("Sim")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = { itemToDelete = null }
+                        ) {
+                            Text("Não")
+                        }
+                    }
+                )
             }
         }
     )
@@ -205,12 +240,18 @@ fun ItemListScreen(
 @Composable
 fun ItemRow(
     note: Note,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongPress: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = { onLongPress() }
+                )
+            },
     ) {
         Text(
             text = note.title,

@@ -107,7 +107,6 @@ fun NoteScreen(
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
-
             it?.let { uri ->
                 noteState = noteState.copy(
                     title = noteTextAppBar,
