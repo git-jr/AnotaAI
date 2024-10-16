@@ -3,8 +3,10 @@ package com.alura.anotaai.di.module
 import android.content.Context
 import androidx.room.Room
 import com.alura.anotaai.database.AppDatabase
+import com.alura.anotaai.database.AudioNoteDao
+import com.alura.anotaai.database.ImageNoteDao
 import com.alura.anotaai.database.NoteDao
-import com.alura.anotaai.database.NoteItemDao
+import com.alura.anotaai.database.TextNoteDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,7 +38,17 @@ class DatabaseModule {
     }
 
     @Provides
-    fun provideNoteItemDao(db: AppDatabase): NoteItemDao {
-        return db.noteItemDao()
+    fun provideTextNoteDao(db: AppDatabase): TextNoteDao {
+        return db.textNoteDao()
+    }
+
+    @Provides
+    fun provideAudioNoteDao(db: AppDatabase): AudioNoteDao {
+        return db.audioNoteDao()
+    }
+
+    @Provides
+    fun provideImageNoteDao(db: AppDatabase): ImageNoteDao {
+        return db.imageNoteDao()
     }
 }

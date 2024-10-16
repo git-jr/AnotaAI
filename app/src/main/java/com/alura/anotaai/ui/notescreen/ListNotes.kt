@@ -264,7 +264,7 @@ private fun ItemNoteImage(
                     .fillMaxWidth(),
                 model = item.link,
                 contentScale = ContentScale.Fit,
-                contentDescription = item.transcription
+                contentDescription = ""
             )
         } else {
             AsyncImage(
@@ -272,7 +272,7 @@ private fun ItemNoteImage(
                     .fillMaxWidth(),
                 model = item.link,
                 contentScale = ContentScale.Crop,
-                contentDescription = item.transcription
+                contentDescription = ""
             )
         }
     }
@@ -345,10 +345,10 @@ fun ListNotesPreview() {
     ListNotes(
         noteState = Note(
             listItems = listOf(
-                NoteItemText("Texto 1"),
-                NoteItemImage("https://picsum.photos/200"),
-                NoteItemAudio("https://audio.com", 42),
-                NoteItemText("Texto 2"),
+                NoteItemText(content = "Texto 1"),
+                NoteItemImage(link = "https://picsum.photos/200"),
+                NoteItemAudio(link = "https://audio.com", duration = 42),
+                NoteItemText(content = "Texto 2"),
             )
         )
     )

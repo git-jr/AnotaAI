@@ -15,15 +15,15 @@ interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(note: NoteEntity): Long
 
-    @Update
-    suspend fun update(note: NoteEntity)
-
-    @Delete
-    suspend fun delete(note: NoteEntity)
-
     @Query("SELECT * FROM Notes WHERE id = :id")
     suspend fun getNoteById(id: Long): NoteEntity?
 
     @Query("SELECT * FROM Notes")
     suspend fun getAllNotes(): List<NoteEntity>
+
+    @Update
+    suspend fun update(note: NoteEntity)
+
+    @Delete
+    suspend fun delete(note: NoteEntity)
 }
