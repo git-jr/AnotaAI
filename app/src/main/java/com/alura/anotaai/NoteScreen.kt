@@ -168,7 +168,6 @@ fun NoteScreen(
                         if (it) {
                             Row(
                                 modifier = Modifier
-                                    .padding(8.dp)
                                     .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
@@ -179,11 +178,13 @@ fun NoteScreen(
                                     text = textTemp,
                                     fontSize = 20.sp
                                 )
-                                IconButton(onClick = {
-                                    onStopRecording()
-                                    isRecording = false
-                                    addAudioNote = true
-                                }) {
+                                IconButton(
+                                    onClick = {
+                                        onStopRecording()
+                                        isRecording = false
+                                        addAudioNote = true
+                                    },
+                                ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_stop),
                                         contentDescription = "Stop recording"
