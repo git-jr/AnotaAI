@@ -30,5 +30,6 @@ enum class NoteType {
 open class BaseNote(
     val id: String = UUID.randomUUID().toString(),
     val transcription: String = "",
-    val type: NoteType = NoteType.TEXT
+    val type: NoteType = NoteType.TEXT,
+    val idMainNote: String = "",
 )

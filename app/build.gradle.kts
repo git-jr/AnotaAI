@@ -60,7 +60,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.coil.compose)
+    implementation(libs.viewmodel.compose)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.navigation.compose)
 
+    // CameraX
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
@@ -68,12 +72,15 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
-    implementation(libs.viewmodel.compose)
-
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.dagger.compiler)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.hilt.navigation.compose)
-    implementation(libs.navigation.compose)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    annotationProcessor(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 }
