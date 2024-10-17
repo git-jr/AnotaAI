@@ -29,8 +29,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.pointer.pointerInput
@@ -38,35 +40,38 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.alura.anotaai.model.Note
+import com.alura.anotaai.ui.home.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.IOException
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private var permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO)
 
-    //    private var fileName: String = ""
     private var recorder: MediaRecorder? = null
     private var player: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION)
 
         setContent {
             AnotaAITheme {
+                // viewmdoel e state
+                val viewModel = hiltViewModel<HomeViewModel>()
+                val state by viewModel.uiState.collectAsState()
+
                 var showNoteScreen by remember { mutableStateOf(false) }
-                val noteList = remember { mutableStateListOf<Note>() }
                 var noteToEdit by remember { mutableStateOf<Note?>(null) }
 
-                var itemCounter by remember { mutableIntStateOf(3) }
-
                 ItemListScreen(
-                    listNotes = noteList,
+                    listNotes = state.notes,
                     onNewItemClicked = {
                         noteToEdit = null
                         showNoteScreen = true
@@ -76,7 +81,7 @@ class MainActivity : ComponentActivity() {
                         showNoteScreen = true
                     },
                     onDeletedItem = { note ->
-                        noteList.remove(note)
+                        viewModel.removeNote(note)
                     }
                 )
 
@@ -86,8 +91,7 @@ class MainActivity : ComponentActivity() {
                         onBackClicked = { showNoteScreen = false },
                         onNoteSaved = { note ->
                             showNoteScreen = false
-                            itemCounter++
-                            noteList.add(note)
+                            viewModel.addNote(note)
                         },
                         onStartRecording = { audioPath ->
                             startRecording(audioPath)
@@ -184,6 +188,20 @@ fun ItemListScreen(
     // Scaffold to manage the floating action button and the content
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        topBar = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Anota Aí",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                HorizontalDivider()
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {

@@ -6,11 +6,13 @@ import java.util.UUID
 data class Note(
     val id: String = UUID.randomUUID().toString(),
     val title: String = "",
+    val date: Long = System.currentTimeMillis(),
     val listItems: List<BaseNote> = emptyList()
 ) {
     fun toNoteEntity() = NoteEntity(
         id = id,
-        title = title
+        title = title,
+        date = date
     )
 }
 

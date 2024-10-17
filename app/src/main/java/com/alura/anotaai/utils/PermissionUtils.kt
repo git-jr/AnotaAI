@@ -2,7 +2,9 @@ package com.alura.anotaai.utils
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.content.ContextCompat
 
@@ -11,6 +13,12 @@ class PermissionUtils(
 ) {
     fun allCameraPermissionsGranted() = CAMERA_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun persistUriPermission(uri: Uri) {
+        val contentResolver = context.contentResolver
+        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        contentResolver.takePersistableUriPermission(uri, takeFlags)
     }
 
     companion object {

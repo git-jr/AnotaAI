@@ -27,9 +27,7 @@ class DatabaseModule {
             context,
             AppDatabase::class.java,
             DATABASE_NAME
-        )
-            .createFromAsset("database/$DATABASE_NAME")
-            .build()
+        ).build()
     }
 
     @Provides

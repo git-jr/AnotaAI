@@ -47,6 +47,7 @@ import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
 import com.alura.anotaai.ui.camera.CameraInitializer
 import com.alura.anotaai.ui.notescreen.ListNotes
+import com.alura.anotaai.utils.PermissionUtils
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +63,7 @@ fun NoteScreen(
 ) {
     val context = LocalContext.current
     var noteText by remember { mutableStateOf("") }
-    var noteTextAppBar by remember { mutableStateOf("Nova Nota") }
+    var noteTextAppBar by remember { mutableStateOf("Nova Nota ") }
     var noteState: Note by remember { mutableStateOf(Note()) }
     noteToEdit?.let {
         noteState = it
@@ -109,6 +110,7 @@ fun NoteScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = {
             it?.let { uri ->
+                PermissionUtils(context).persistUriPermission(uri)
                 noteState = noteState.copy(
                     title = noteTextAppBar,
                     listItems = noteState.listItems.toMutableList().apply {
@@ -134,6 +136,7 @@ fun NoteScreen(
                         BasicTextField(
                             value = noteTextAppBar,
                             onValueChange = { noteTextAppBar = it },
+                            modifier = Modifier.fillMaxWidth(),
                             textStyle = LocalTextStyle.current.copy(
                                 fontSize = 20.sp,
                                 color = MaterialTheme.colorScheme.onSurface

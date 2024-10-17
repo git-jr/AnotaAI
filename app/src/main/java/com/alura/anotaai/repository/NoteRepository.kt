@@ -7,6 +7,7 @@ import com.alura.anotaai.database.TextNoteDao
 import com.alura.anotaai.database.entities.toNoteItemAudio
 import com.alura.anotaai.database.entities.toNoteItemImage
 import com.alura.anotaai.database.entities.toNoteItemText
+import com.alura.anotaai.model.BaseNote
 import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
@@ -20,20 +21,22 @@ class NoteRepository @Inject constructor(
     private val imageNoteDao: ImageNoteDao,
     private val audioNoteDao: AudioNoteDao,
 ) {
-    suspend fun insert(note: Note) {
+
+    suspend fun addNote(note: Note) {
         noteDao.insert(note.toNoteEntity())
         note.listItems.forEach { noteItem ->
+            val currentTime = System.currentTimeMillis()
             when (noteItem) {
                 is NoteItemText -> textNoteDao.insert(
-                    noteItem.toNoteTextEntity().copy(idMainNote = note.id)
+                    noteItem.toNoteTextEntity().copy(idMainNote = note.id, date = currentTime)
                 )
 
                 is NoteItemImage -> imageNoteDao.insert(
-                    noteItem.toNoteImageEntity().copy(idMainNote = note.id)
+                    noteItem.toNoteImageEntity().copy(idMainNote = note.id, date = currentTime)
                 )
 
                 is NoteItemAudio -> audioNoteDao.insert(
-                    noteItem.toAudioNoteEntity().copy(idMainNote = note.id)
+                    noteItem.toAudioNoteEntity().copy(idMainNote = note.id, date = currentTime)
                 )
             }
         }
@@ -52,6 +55,17 @@ class NoteRepository @Inject constructor(
                 title = noteEntity.title,
                 listItems = textNotes + imageNotes + audioNotes
             )
+        }.sortedByDescending { it.date }
+    }
+
+    suspend fun removeNote(note: Note) {
+        noteDao.delete(note.toNoteEntity())
+        note.listItems.forEach { noteItem ->
+            when (noteItem) {
+                is NoteItemText -> textNoteDao.delete(noteItem.toNoteTextEntity())
+                is NoteItemImage -> imageNoteDao.delete(noteItem.toNoteImageEntity())
+                is NoteItemAudio -> audioNoteDao.delete(noteItem.toAudioNoteEntity())
+            }
         }
     }
 }
