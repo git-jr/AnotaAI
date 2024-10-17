@@ -1,4 +1,4 @@
-package com.alura.anotaai
+package com.alura.anotaai.ui.notescreen
 
 import android.util.Log
 import android.widget.Toast
@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,12 +42,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.alura.anotaai.R
+import com.alura.anotaai.extensions.audioDisplay
 import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
 import com.alura.anotaai.ui.camera.CameraInitializer
-import com.alura.anotaai.ui.notescreen.ListNotes
+import com.alura.anotaai.ui.home.HomeViewModel
 import com.alura.anotaai.utils.PermissionUtils
 import kotlinx.coroutines.delay
 
@@ -61,13 +65,20 @@ fun NoteScreen(
     onPlayAudio: (String) -> Unit = {},
     onStopAudio: () -> Unit = {},
 ) {
+    val viewModel = hiltViewModel<NoteViewModel>()
+    val state by viewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) {
+        noteToEdit?.let {
+            viewModel.getNoteById(it.id)
+        }
+    }
+
     val context = LocalContext.current
     var noteText by remember { mutableStateOf("") }
-    var noteTextAppBar by remember { mutableStateOf("Nova Nota ") }
     var noteState: Note by remember { mutableStateOf(Note()) }
     noteToEdit?.let {
         noteState = it
-        noteTextAppBar = it.title
+        viewModel.updateNoteTextAppBar(it.title)
     }
 
     var isRecording by remember { mutableStateOf(false) }
@@ -112,7 +123,7 @@ fun NoteScreen(
             it?.let { uri ->
                 PermissionUtils(context).persistUriPermission(uri)
                 noteState = noteState.copy(
-                    title = noteTextAppBar,
+                    title = state.noteTextAppBar,
                     listItems = noteState.listItems.toMutableList().apply {
                         add(
                             NoteItemImage(
@@ -134,8 +145,10 @@ fun NoteScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         BasicTextField(
-                            value = noteTextAppBar,
-                            onValueChange = { noteTextAppBar = it },
+                            value = state.noteTextAppBar,
+                            onValueChange = {
+                                viewModel.updateNoteTextAppBar(it)
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = LocalTextStyle.current.copy(
                                 fontSize = 20.sp,
@@ -155,7 +168,7 @@ fun NoteScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        onNoteSaved(noteState.copy(title = noteTextAppBar))
+                        onNoteSaved(noteState.copy(title = state.noteTextAppBar))
                     }) {
                         Icon(
                             imageVector = Icons.Default.Check,
@@ -252,7 +265,7 @@ fun NoteScreen(
                                 IconButton(onClick = {
                                     if (noteText.isBlank()) return@IconButton
                                     noteState = noteState.copy(
-                                        title = noteTextAppBar,
+                                        title = state.noteTextAppBar,
                                         listItems = noteState.listItems.toMutableList().apply {
                                             add(
                                                 NoteItemText(
@@ -303,10 +316,8 @@ fun NoteScreen(
                             listItems = updatedList
                         )
                     },
-                    onDeletedItem = { id ->
-                        noteState = noteState.copy(
-                            listItems = noteState.listItems.filter { item -> item.id != id }
-                        )
+                    onDeletedItem = { itemNote ->
+                        viewModel.deleteItemNote(itemNote)
                         Log.d("NoteScreen", "Item deleted: $noteState")
                     }
                 )
@@ -318,7 +329,7 @@ fun NoteScreen(
         CameraInitializer(
             onImageSaved = { filePath ->
                 noteState = noteState.copy(
-                    title = noteTextAppBar,
+                    title = state.noteTextAppBar,
                     listItems = noteState.listItems.toMutableList().apply {
                         add(
                             NoteItemImage(

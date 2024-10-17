@@ -26,6 +26,6 @@ interface TextNoteDao {
     @Update
     suspend fun update(note: TextNoteEntity)
 
-    @Delete
-    suspend fun delete(note: TextNoteEntity)
+    @Query("DELETE FROM TextNotes WHERE id = :itemID")
+    suspend fun delete(itemID: String)
 }

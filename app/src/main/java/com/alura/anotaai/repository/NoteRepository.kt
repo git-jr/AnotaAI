@@ -53,19 +53,41 @@ class NoteRepository @Inject constructor(
             Note(
                 id = noteEntity.id,
                 title = noteEntity.title,
-                listItems = textNotes + imageNotes + audioNotes
+                listItems = (textNotes + imageNotes + audioNotes).sortedBy { it.date }
             )
         }.sortedByDescending { it.date }
+    }
+
+    suspend fun getNoteById(noteId: String): Note? {
+        val noteEntity = noteDao.getNoteById(noteId) ?: return null
+        val textNotes = textNoteDao.getByIdMainNote(noteEntity.id).map { it.toNoteItemText() }
+        val imageNotes = imageNoteDao.getByIdMainNote(noteEntity.id).map { it.toNoteItemImage() }
+        val audioNotes = audioNoteDao.getByIdMainNote(noteEntity.id).map { it.toNoteItemAudio() }
+        return Note(
+            id = noteEntity.id,
+            title = noteEntity.title,
+            listItems = textNotes + imageNotes + audioNotes
+        )
     }
 
     suspend fun removeNote(note: Note) {
         noteDao.delete(note.toNoteEntity())
         note.listItems.forEach { noteItem ->
             when (noteItem) {
-                is NoteItemText -> textNoteDao.delete(noteItem.toNoteTextEntity())
+                is NoteItemText -> textNoteDao.delete(noteItem.id)
                 is NoteItemImage -> imageNoteDao.delete(noteItem.toNoteImageEntity())
                 is NoteItemAudio -> audioNoteDao.delete(noteItem.toAudioNoteEntity())
             }
+        }
+    }
+
+    suspend fun removeItemNote(
+        noteItem: BaseNote
+    ) {
+        when (noteItem) {
+            is NoteItemText -> textNoteDao.delete(noteItem.id)
+            is NoteItemImage -> imageNoteDao.delete(noteItem.toNoteImageEntity())
+            is NoteItemAudio -> audioNoteDao.delete(noteItem.toAudioNoteEntity())
         }
     }
 }

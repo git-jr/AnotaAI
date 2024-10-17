@@ -1,4 +1,4 @@
-package com.alura.anotaai
+package com.alura.anotaai.extensions
 
 import java.util.Locale
 

@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -46,7 +45,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.alura.anotaai.audioDisplay
+import com.alura.anotaai.extensions.audioDisplay
+import com.alura.anotaai.model.BaseNote
 import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
@@ -63,12 +63,13 @@ fun ListNotes(
     onPlayAudio: (String) -> Unit = {},
     onStopAudio: () -> Unit = {},
     onUpdatedItem: (String, String) -> Unit = { _, _ -> },
-    onDeletedItem: (String) -> Unit = {}
+    onDeletedItem: (BaseNote) -> Unit = {}
 ) {
     val stateList = rememberLazyListState()
-    var itemToDelete by remember { mutableStateOf<String?>(null) }
+    var itemToDelete by remember { mutableStateOf<BaseNote?>(null) }
 
     LazyColumn(
+        modifier = modifier,
         state = stateList,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -81,7 +82,10 @@ fun ListNotes(
                 BasicTextField(
                     value = noteText,
                     onValueChange = { onNoteTextChanged(it) },
-                    textStyle = LocalTextStyle.current.copy(fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Done
                     ),
@@ -116,7 +120,7 @@ fun ListNotes(
                             )
                         },
                         onDeleted = {
-                            itemToDelete = item.id
+                            itemToDelete = item
                         }
                     )
                 }
@@ -126,7 +130,7 @@ fun ListNotes(
                         modifier = Modifier,
                         item = item as NoteItemImage,
                         onDeleted = {
-                            itemToDelete = item.id
+                            itemToDelete = item
                         }
                     )
                 }
@@ -138,7 +142,7 @@ fun ListNotes(
                         onPlayAudio = onPlayAudio,
                         onStopAudio = onStopAudio,
                         onDeleted = {
-                            itemToDelete = item.id
+                            itemToDelete = item
                         }
                     )
                 }
@@ -154,8 +158,8 @@ fun ListNotes(
             confirmButton = {
                 Button(
                     onClick = {
+                        itemToDelete?.let { onDeletedItem(it) }
                         itemToDelete = null
-                        onDeletedItem(itemId)
                     }
                 ) {
                     Text("Sim")
