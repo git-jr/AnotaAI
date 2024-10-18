@@ -3,6 +3,7 @@ package com.alura.anotaai.ui.notescreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alura.anotaai.model.BaseNote
+import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
@@ -25,6 +26,12 @@ class NoteViewModel @Inject constructor(
             noteRepository.getNoteById(noteId)?.let {
                 _uiState.value = NoteUiState(note = it, noteTextAppBar = it.title)
             }
+        }
+    }
+
+    fun saveNote() {
+        viewModelScope.launch {
+            noteRepository.addNote(_uiState.value.note.copy(title = _uiState.value.noteTextAppBar))
         }
     }
 

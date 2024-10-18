@@ -7,6 +7,7 @@ import androidx.room.Update
 import androidx.room.Delete
 import androidx.room.Query
 import com.alura.anotaai.database.entities.NoteEntity
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
@@ -19,7 +20,7 @@ interface NoteDao {
     suspend fun getNoteById(id: String): NoteEntity?
 
     @Query("SELECT * FROM Notes")
-    suspend fun getAllNotes(): List<NoteEntity>
+    fun getAllNotes(): Flow<List<NoteEntity>>
 
     @Update
     suspend fun update(note: NoteEntity)

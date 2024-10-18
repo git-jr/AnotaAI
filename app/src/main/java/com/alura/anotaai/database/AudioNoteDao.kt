@@ -1,7 +1,6 @@
 package com.alura.anotaai.database
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,8 +16,8 @@ interface AudioNoteDao {
     @Update
     suspend fun update(audioNote: AudioNoteEntity)
 
-    @Delete
-    suspend fun delete(audioNote: AudioNoteEntity)
+    @Query("DELETE FROM AudioNotes WHERE id = :itemID")
+    suspend fun delete(itemID: String)
 
     @Query("SELECT * FROM AudioNotes WHERE idMainNote = :idMainNote")
     suspend fun getByIdMainNote(idMainNote: String): List<AudioNoteEntity>
@@ -26,6 +25,6 @@ interface AudioNoteDao {
     @Query("SELECT * FROM AudioNotes WHERE id = :id")
     suspend fun getAudioNoteById(id: String): AudioNoteEntity?
 
-    @Query("SELECT * FROM AudioNotes")
-    suspend fun getAllAudioNotes(): List<AudioNoteEntity>
+    @Query("DELETE FROM AudioNotes WHERE id = :idMainNote")
+    suspend fun deleteByIdMainNote(idMainNote: String)
 }

@@ -39,71 +39,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.alura.anotaai.R
 import com.alura.anotaai.model.Note
-import com.alura.anotaai.ui.notescreen.NoteScreen
+
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    startRecording: (String) -> Unit,
-    stopRecording: () -> Unit,
-    startPlaying: (String) -> Unit,
-    stopPlaying: () -> Unit
+    onAddNewNote: () -> Unit = {},
+    onOpenNote: (String) -> Unit = {}
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val state by viewModel.uiState.collectAsState()
 
-    ItemListScreen(
-        modifier = modifier,
-        listNotes = state.notes,
-        onAddNewNote = {
-            viewModel.setNoteToEdit(null, true)
-        },
-        onOpenNote = { noteId ->
-            viewModel.setNoteToEdit(noteId, true)
-        },
-        onDeletedItem = { note ->
-            viewModel.removeNote(note)
-        }
-    )
-
-    Crossfade(targetState = state.showNoteScreen, label = "showNoteScreen") { showNoteScreen ->
-        if (showNoteScreen) {
-            NoteScreen(
-                noteToEdit = state.idEditNote,
-                onBackClicked = {
-                    viewModel.setNoteToEdit(null, false)
-                },
-                onNoteSaved = { note ->
-                    viewModel.setNoteToEdit(null, false)
-                    viewModel.addNote(note)
-                },
-                onStartRecording = { audioPath ->
-                    startRecording(audioPath)
-                },
-                onStopRecording = {
-                    stopRecording()
-                },
-                onPlayAudio = { audioPath ->
-                    startPlaying(audioPath)
-                },
-                onStopAudio = {
-                    stopPlaying()
-                }
-            )
-        }
-    }
-
-
-}
-
-@Composable
-fun ItemListScreen(
-    modifier: Modifier = Modifier,
-    listNotes: List<Note> = emptyList(),
-    onAddNewNote: () -> Unit = {},
-    onOpenNote: (String) -> Unit = {},
-    onDeletedItem: (Note) -> Unit = {}
-) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -129,9 +75,8 @@ fun ItemListScreen(
             )
         },
         content = { paddingValues ->
-            Crossfade(targetState = listNotes.isNotEmpty()) { hasItems ->
+            Crossfade(targetState = state.notes.isNotEmpty(), label = "hasItems") { hasItems ->
                 if (hasItems) {
-                    // List of items displayed using LazyColumn
                     var itemToDelete by remember { mutableStateOf<Note?>(null) }
                     LazyColumn(
                         modifier = Modifier
@@ -140,7 +85,7 @@ fun ItemListScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
-                        items(listNotes) { item ->
+                        items(state.notes) { item ->
                             ItemNote(
                                 note = item,
                                 onClick = { onOpenNote(item.id) },
@@ -160,7 +105,7 @@ fun ItemListScreen(
                                 Button(
                                     onClick = {
                                         itemToDelete = null
-                                        onDeletedItem(itemId)
+                                        viewModel.removeNote(itemId)
                                     }
                                 ) {
                                     Text("Sim")
@@ -229,5 +174,5 @@ fun ItemNote(
 @Preview(showBackground = true)
 @Composable
 fun PreviewItemListScreen() {
-    ItemListScreen()
+    HomeScreen()
 }

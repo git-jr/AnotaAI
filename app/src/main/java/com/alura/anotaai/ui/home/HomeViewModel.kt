@@ -26,25 +26,12 @@ class HomeViewModel @Inject constructor(
     fun removeNote(note: Note) {
         viewModelScope.launch {
             noteRepository.removeNote(note)
-            getAllNotes()
-        }
-    }
-
-    fun addNote(note: Note) {
-        viewModelScope.launch {
-            noteRepository.addNote(note).let {
-                getAllNotes()
-            }
         }
     }
 
     private suspend fun getAllNotes() {
-        noteRepository.getAllNotes().let {
+        noteRepository.getAllNotes().collect {
             _uiState.value = HomeUiState(notes = it)
         }
-    }
-
-    fun setNoteToEdit(noteId: String?, showNoteScreen: Boolean = false) {
-        _uiState.value = _uiState.value.copy(idEditNote = noteId, showNoteScreen = showNoteScreen)
     }
 }

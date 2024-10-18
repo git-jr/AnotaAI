@@ -3,9 +3,8 @@ package com.alura.anotaai.database
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
-import androidx.room.Update
-import androidx.room.Delete
 import androidx.room.Query
+import androidx.room.Update
 import com.alura.anotaai.database.entities.TextNoteEntity
 
 @Dao
@@ -20,12 +19,12 @@ interface TextNoteDao {
     @Query("SELECT * FROM TextNotes WHERE id = :id")
     suspend fun getNoteById(id: String): TextNoteEntity?
 
-    @Query("SELECT * FROM TextNotes")
-    suspend fun getAllNotes(): List<TextNoteEntity>
-
     @Update
     suspend fun update(note: TextNoteEntity)
 
     @Query("DELETE FROM TextNotes WHERE id = :itemID")
     suspend fun delete(itemID: String)
+
+    @Query("DELETE FROM TextNotes WHERE idMainNote = :idMainNote")
+    suspend fun deleteByIdMainNote(idMainNote: String)
 }

@@ -8,7 +8,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.alura.anotaai.ui.home.HomeScreen
+import androidx.navigation.compose.rememberNavController
+import com.alura.anotaai.ui.navigation.NavHost
 import com.alura.anotaai.ui.theme.AnotaAITheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.IOException
@@ -24,7 +25,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AnotaAITheme {
-                HomeScreen(
+                NavHost(rememberNavController(),
                     startRecording = { startRecording(it) },
                     stopRecording = { stopRecording() },
                     startPlaying = { startPlaying(it) },

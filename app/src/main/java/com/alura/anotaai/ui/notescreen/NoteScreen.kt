@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.alura.anotaai.R
 import com.alura.anotaai.extensions.audioDisplay
-import com.alura.anotaai.model.Note
 import com.alura.anotaai.ui.camera.CameraInitializer
 import com.alura.anotaai.utils.PermissionUtils
 import kotlinx.coroutines.delay
@@ -52,8 +51,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun NoteScreen(
     noteToEdit: String? = null,
-    onBackClicked: () -> Unit = {},
-    onNoteSaved: (note: Note) -> Unit = {},
+    onBack: () -> Unit = {},
     onStartRecording: (String) -> Unit = {},
     onStopRecording: () -> Unit = {},
     onPlayAudio: (String) -> Unit = {},
@@ -77,7 +75,7 @@ fun NoteScreen(
     LaunchedEffect(Unit) {
         noteToEdit?.let {
             viewModel.getNoteById(it)
-        } ?: viewModel.resetNote()
+        }
     }
 
     LaunchedEffect(state.isRecording) {
@@ -128,7 +126,7 @@ fun NoteScreen(
 
                 },
                 navigationIcon = {
-                    IconButton(onClick = { onBackClicked() }) {
+                    IconButton(onClick = { onBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -137,7 +135,8 @@ fun NoteScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        onNoteSaved(state.note.copy(title = state.noteTextAppBar))
+                        viewModel.saveNote()
+                        onBack()
                     }) {
                         Icon(
                             imageVector = Icons.Default.Check,

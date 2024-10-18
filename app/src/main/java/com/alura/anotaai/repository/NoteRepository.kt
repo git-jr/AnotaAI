@@ -4,6 +4,7 @@ import com.alura.anotaai.database.AudioNoteDao
 import com.alura.anotaai.database.ImageNoteDao
 import com.alura.anotaai.database.NoteDao
 import com.alura.anotaai.database.TextNoteDao
+import com.alura.anotaai.database.entities.toNote
 import com.alura.anotaai.database.entities.toNoteItemAudio
 import com.alura.anotaai.database.entities.toNoteItemImage
 import com.alura.anotaai.database.entities.toNoteItemText
@@ -12,6 +13,11 @@ import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
@@ -42,20 +48,9 @@ class NoteRepository @Inject constructor(
         }
     }
 
-    suspend fun getAllNotes(): List<Note> {
-        val allNotes = noteDao.getAllNotes()
-        return allNotes.map { noteEntity ->
-            val textNotes = textNoteDao.getByIdMainNote(noteEntity.id).map { it.toNoteItemText() }
-            val imageNotes =
-                imageNoteDao.getByIdMainNote(noteEntity.id).map { it.toNoteItemImage() }
-            val audioNotes =
-                audioNoteDao.getByIdMainNote(noteEntity.id).map { it.toNoteItemAudio() }
-            Note(
-                id = noteEntity.id,
-                title = noteEntity.title,
-                listItems = (textNotes + imageNotes + audioNotes).sortedBy { it.date }
-            )
-        }.sortedByDescending { it.date }
+    fun getAllNotes(): Flow<List<Note>> {
+        return noteDao.getAllNotes()
+            .map { noteList -> noteList.map { it.toNote() }.sortedByDescending { it.date } }
     }
 
     suspend fun getNoteById(noteId: String): Note? {
@@ -72,22 +67,20 @@ class NoteRepository @Inject constructor(
 
     suspend fun removeNote(note: Note) {
         noteDao.delete(note.toNoteEntity())
-        note.listItems.forEach { noteItem ->
-            when (noteItem) {
-                is NoteItemText -> textNoteDao.delete(noteItem.id)
-                is NoteItemImage -> imageNoteDao.delete(noteItem.toNoteImageEntity())
-                is NoteItemAudio -> audioNoteDao.delete(noteItem.toAudioNoteEntity())
-            }
+
+        textNoteDao.deleteByIdMainNote(note.id)
+        imageNoteDao.deleteByIdMainNote(note.id)
+        audioNoteDao.deleteByIdMainNote(note.id)
+    }
+
+    suspend fun removeItemNote(noteItem: BaseNote) {
+        when (noteItem) {
+            is NoteItemText -> textNoteDao.delete(noteItem.id)
+            is NoteItemImage -> imageNoteDao.delete(noteItem.id)
+            is NoteItemAudio -> audioNoteDao.delete(noteItem.id)
         }
     }
 
-    suspend fun removeItemNote(
-        noteItem: BaseNote
-    ) {
-        when (noteItem) {
-            is NoteItemText -> textNoteDao.delete(noteItem.id)
-            is NoteItemImage -> imageNoteDao.delete(noteItem.toNoteImageEntity())
-            is NoteItemAudio -> audioNoteDao.delete(noteItem.toAudioNoteEntity())
-        }
-    }
 }
+
+
