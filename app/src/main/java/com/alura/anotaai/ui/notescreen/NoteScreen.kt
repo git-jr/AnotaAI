@@ -1,6 +1,5 @@
 package com.alura.anotaai.ui.notescreen
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -31,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,11 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.alura.anotaai.R
 import com.alura.anotaai.extensions.audioDisplay
 import com.alura.anotaai.model.Note
-import com.alura.anotaai.model.NoteItemAudio
-import com.alura.anotaai.model.NoteItemImage
-import com.alura.anotaai.model.NoteItemText
 import com.alura.anotaai.ui.camera.CameraInitializer
-import com.alura.anotaai.ui.home.HomeViewModel
 import com.alura.anotaai.utils.PermissionUtils
 import kotlinx.coroutines.delay
 
@@ -67,51 +61,24 @@ fun NoteScreen(
 ) {
     val viewModel = hiltViewModel<NoteViewModel>()
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         noteToEdit?.let {
             viewModel.getNoteById(it.id)
         }
     }
 
-    val context = LocalContext.current
-    var noteText by remember { mutableStateOf("") }
-    var noteState: Note by remember { mutableStateOf(Note()) }
-    noteToEdit?.let {
-        noteState = it
-        viewModel.updateNoteTextAppBar(it.title)
-    }
-
-    var isRecording by remember { mutableStateOf(false) }
-    var addAudioNote by remember { mutableStateOf(false) }
-    var audioDuration: Int by remember { mutableIntStateOf(0) }
-    var audioPath by remember { mutableStateOf("") }
-
-    var showCameraScreen by remember { mutableStateOf(false) }
-
-    // para adicionar a nota de áudio ao fim de uma gravação
-    LaunchedEffect(isRecording) {
-        if (addAudioNote) {
-            noteState = noteState.copy(
-                listItems = noteState.listItems.toMutableList().apply {
-                    add(
-                        NoteItemAudio(
-                            link = audioPath,
-                            duration = audioDuration
-                        )
-                    )
-                }
-            )
-            addAudioNote = false
+    LaunchedEffect(state.isRecording) {
+        if (state.addAudioNote) {
+            viewModel.addNewItemAudio()
         }
-    }
 
-    // time da gravacao
-    LaunchedEffect(isRecording) {
-        if (!isRecording) {
-            audioDuration = 0
+        if (!state.isRecording) {
+            viewModel.updateAudioDuration(0)
         } else {
-            while (isRecording) {
-                audioDuration++
+            repeat(Int.MAX_VALUE) {
+                viewModel.updateAudioDuration(state.audioDuration + 1)
                 delay(1000)
             }
         }
@@ -122,16 +89,7 @@ fun NoteScreen(
         onResult = {
             it?.let { uri ->
                 PermissionUtils(context).persistUriPermission(uri)
-                noteState = noteState.copy(
-                    title = state.noteTextAppBar,
-                    listItems = noteState.listItems.toMutableList().apply {
-                        add(
-                            NoteItemImage(
-                                link = uri.toString(),
-                            )
-                        )
-                    }
-                )
+                viewModel.addNewItemImage(uri.toString())
             }
         }
     )
@@ -168,7 +126,7 @@ fun NoteScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        onNoteSaved(noteState.copy(title = state.noteTextAppBar))
+                        onNoteSaved(state.note.copy(title = state.noteTextAppBar))
                     }) {
                         Icon(
                             imageVector = Icons.Default.Check,
@@ -184,7 +142,7 @@ fun NoteScreen(
                 tonalElevation = 8.dp
             ) {
                 Column {
-                    Crossfade(targetState = isRecording) {
+                    Crossfade(targetState = state.isRecording) {
                         if (it) {
                             Row(
                                 modifier = Modifier
@@ -192,7 +150,7 @@ fun NoteScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val textTemp = "Gravando: ${audioDuration.audioDisplay()}"
+                                val textTemp = "Gravando: ${state.audioDuration.audioDisplay()}"
 
                                 Text(
                                     text = textTemp,
@@ -201,8 +159,8 @@ fun NoteScreen(
                                 IconButton(
                                     onClick = {
                                         onStopRecording()
-                                        isRecording = false
-                                        addAudioNote = true
+                                        viewModel.updateIsRecording(false)
+                                        viewModel.updateAddAudioNote(true)
                                     },
                                 ) {
                                     Icon(
@@ -220,7 +178,7 @@ fun NoteScreen(
                             ) {
                                 // Icon for adding a photo from the camera
                                 IconButton(onClick = {
-                                    showCameraScreen = true
+                                    viewModel.updateShowCameraState(true)
                                 }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_camera),
@@ -245,15 +203,16 @@ fun NoteScreen(
 
                                 // Icon for starting audio recording
                                 IconButton(onClick = {
-                                    if (isRecording) {
-                                        addAudioNote = true
+                                    if (state.isRecording) {
+                                        viewModel.updateAddAudioNote(true)
                                         onStopRecording()
                                     } else {
-                                        audioPath =
+                                        val audioPath =
                                             "${context.externalCacheDir?.absolutePath}/audio${System.currentTimeMillis()}.acc"
+                                        viewModel.setAudioPath(audioPath)
                                         onStartRecording(audioPath)
                                     }
-                                    isRecording = true
+                                    viewModel.updateIsRecording(!state.isRecording)
                                 }) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_mic),
@@ -263,18 +222,8 @@ fun NoteScreen(
 
                                 // Icon for adding a text note
                                 IconButton(onClick = {
-                                    if (noteText.isBlank()) return@IconButton
-                                    noteState = noteState.copy(
-                                        title = state.noteTextAppBar,
-                                        listItems = noteState.listItems.toMutableList().apply {
-                                            add(
-                                                NoteItemText(
-                                                    content = noteText,
-                                                )
-                                            )
-                                        }
-                                    )
-                                    noteText = ""
+                                    if (state.noteText.isBlank()) return@IconButton
+                                    viewModel.addNewItemText()
                                 }) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Send,
@@ -300,50 +249,32 @@ fun NoteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.8f),
-                    noteState = noteState,
-                    noteText = noteText,
-                    onNoteTextChanged = { noteText = it },
+                    noteState = state.note,
+                    noteText = state.noteText,
+                    onNoteTextChanged = { viewModel.updateNoteText(it) },
                     onPlayAudio = onPlayAudio,
                     onStopAudio = onStopAudio,
                     onUpdatedItem = { updateItem, id ->
-                        // atualizar a lista primeiro
-                        val updatedList = noteState.listItems.map { item ->
-                            if (item.id == id && item is NoteItemText) item.copy(content = updateItem) else item
-                        }
-
-                        // atualizar o estado da nota
-                        noteState = noteState.copy(
-                            listItems = updatedList
-                        )
+                        viewModel.updateItemText(updateItem, id)
                     },
                     onDeletedItem = { itemNote ->
                         viewModel.deleteItemNote(itemNote)
-                        Log.d("NoteScreen", "Item deleted: $noteState")
                     }
                 )
             }
         },
     )
 
-    if (showCameraScreen) {
+    if (state.showCameraScreen) {
         CameraInitializer(
             onImageSaved = { filePath ->
-                noteState = noteState.copy(
-                    title = state.noteTextAppBar,
-                    listItems = noteState.listItems.toMutableList().apply {
-                        add(
-                            NoteItemImage(
-                                link = filePath,
-                            )
-                        )
-                    }
-                )
-                showCameraScreen = false
+                viewModel.addNewItemImage(filePath)
+                viewModel.updateShowCameraState(false)
             },
             onError = {
                 Toast.makeText(context, "Erro ao salvar imagem", Toast.LENGTH_SHORT)
                     .show()
-                showCameraScreen = false
+                viewModel.updateShowCameraState(false)
             }
         )
     }

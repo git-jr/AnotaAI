@@ -130,9 +130,9 @@ class MainActivity : ComponentActivity() {
                     prepare()
                     Toast.makeText(context, "Gravando", Toast.LENGTH_SHORT).show()
                 } catch (e: IOException) {
-                    Toast.makeText(context, "Erro ao iniciar gravação", Toast.LENGTH_SHORT)
+                    Toast.makeText(context, "Erro ao iniciar gravação $e", Toast.LENGTH_SHORT)
                         .show()
-                    Log.e("LOG_TAG", "prepare() failed")
+                    Log.e("LOG_TAG", "prepare() failed $e")
                 }
 
                 start()

@@ -108,7 +108,7 @@ fun ListNotes(
 
         }
 
-        items(noteState.listItems.reversed(), key = { it.id }) { item ->
+        items(noteState.listItems.sortedByDescending { it.date }, key = { it.id }) { item ->
             when (item.type) {
                 NoteType.TEXT -> {
                     ItemNoteText(
