@@ -51,7 +51,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteScreen(
-    noteToEdit: Note? = Note(),
+    noteToEdit: String? = null,
     onBackClicked: () -> Unit = {},
     onNoteSaved: (note: Note) -> Unit = {},
     onStartRecording: (String) -> Unit = {},
@@ -63,10 +63,21 @@ fun NoteScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
+    val permissionUtils by remember { mutableStateOf(PermissionUtils(context)) }
+    var permissionGranted by remember { mutableStateOf(permissionUtils.microphonePermissionsGranted()) }
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.all { it }) {
+            permissionGranted = true
+            Toast.makeText(context, "Permissão concedida", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(Unit) {
         noteToEdit?.let {
-            viewModel.getNoteById(it.id)
-        }
+            viewModel.getNoteById(it)
+        } ?: viewModel.resetNote()
     }
 
     LaunchedEffect(state.isRecording) {
@@ -142,8 +153,11 @@ fun NoteScreen(
                 tonalElevation = 8.dp
             ) {
                 Column {
-                    Crossfade(targetState = state.isRecording) {
-                        if (it) {
+                    Crossfade(
+                        targetState = state.isRecording,
+                        label = "isRecording"
+                    ) { isRecording ->
+                        if (isRecording) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth(),
@@ -176,7 +190,6 @@ fun NoteScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Icon for adding a photo from the camera
                                 IconButton(onClick = {
                                     viewModel.updateShowCameraState(true)
                                 }) {
@@ -186,9 +199,7 @@ fun NoteScreen(
                                     )
                                 }
 
-                                // Icon for adding an image from the gallery
                                 IconButton(onClick = {
-                                    /* Handle gallery action */
                                     pickImageLauncher.launch(
                                         PickVisualMediaRequest(
                                             ActivityResultContracts.PickVisualMedia.ImageOnly
@@ -201,18 +212,21 @@ fun NoteScreen(
                                     )
                                 }
 
-                                // Icon for starting audio recording
                                 IconButton(onClick = {
-                                    if (state.isRecording) {
-                                        viewModel.updateAddAudioNote(true)
-                                        onStopRecording()
+                                    if (permissionGranted) {
+                                        if (state.isRecording) {
+                                            viewModel.updateAddAudioNote(true)
+                                            onStopRecording()
+                                        } else {
+                                            val audioPath =
+                                                "${context.externalCacheDir?.absolutePath}/audio${System.currentTimeMillis()}.acc"
+                                            viewModel.setAudioPath(audioPath)
+                                            onStartRecording(audioPath)
+                                        }
+                                        viewModel.updateIsRecording(!state.isRecording)
                                     } else {
-                                        val audioPath =
-                                            "${context.externalCacheDir?.absolutePath}/audio${System.currentTimeMillis()}.acc"
-                                        viewModel.setAudioPath(audioPath)
-                                        onStartRecording(audioPath)
+                                        requestPermissionLauncher.launch(PermissionUtils.MICROPHONE_PERMISSIONS)
                                     }
-                                    viewModel.updateIsRecording(!state.isRecording)
                                 }) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_mic),
@@ -220,7 +234,6 @@ fun NoteScreen(
                                     )
                                 }
 
-                                // Icon for adding a text note
                                 IconButton(onClick = {
                                     if (state.noteText.isBlank()) return@IconButton
                                     viewModel.addNewItemText()

@@ -43,4 +43,8 @@ class HomeViewModel @Inject constructor(
             _uiState.value = HomeUiState(notes = it)
         }
     }
+
+    fun setNoteToEdit(noteId: String?, showNoteScreen: Boolean = false) {
+        _uiState.value = _uiState.value.copy(idEditNote = noteId, showNoteScreen = showNoteScreen)
+    }
 }

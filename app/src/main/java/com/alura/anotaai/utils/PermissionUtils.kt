@@ -15,6 +15,10 @@ class PermissionUtils(
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 
+    fun microphonePermissionsGranted() = CAMERA_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
+
     fun persistUriPermission(uri: Uri) {
         val contentResolver = context.contentResolver
         val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -31,5 +35,7 @@ class PermissionUtils(
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             }.toTypedArray()
+
+        val MICROPHONE_PERMISSIONS = arrayOf(Manifest.permission.RECORD_AUDIO)
     }
 }

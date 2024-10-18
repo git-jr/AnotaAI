@@ -113,4 +113,8 @@ class NoteViewModel @Inject constructor(
     fun setAudioPath(audioPath: String) {
         _uiState.value = _uiState.value.copy(audioPath = audioPath)
     }
+
+    fun resetNote() {
+        _uiState.value = NoteUiState()
+    }
 }
