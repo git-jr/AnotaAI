@@ -11,10 +11,12 @@ data class NoteEntity(
     var id: String = UUID.randomUUID().toString(),
     val title: String,
     val date: Long = System.currentTimeMillis(),
+    val thumbnail: String? = null
 )
 
 fun NoteEntity.toNote() = Note(
     id = id,
     title = title,
-    date = date
+    date = date,
+    thumbnail = thumbnail
 )

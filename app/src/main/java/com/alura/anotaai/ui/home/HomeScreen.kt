@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,7 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.alura.anotaai.R
+import com.alura.anotaai.extensions.toDisplayDate
 import com.alura.anotaai.model.Note
+import com.alura.anotaai.model.NoteType
 
 
 @Composable
@@ -163,11 +167,54 @@ fun ItemNote(
                 )
             },
     ) {
-        Text(
-            text = note.title,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            val thumb = if (note.thumbnail == NoteType.AUDIO.name) {
+                R.drawable.ic_mic
+            } else if (note.thumbnail == NoteType.TEXT.name) {
+                R.drawable.ic_title
+            } else {
+                note.thumbnail
+            }
+
+
+            Column(
+                modifier = Modifier
+                    .weight(0.8f)
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    text = note.title,
+                    fontSize = 20.sp
+                )
+                Text(
+                    text = note.date.toDisplayDate(),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            Card(
+                modifier = Modifier
+                    .weight(0.2f)
+                    .size(70.dp),
+            ) {
+                AsyncImage(
+                    thumb,
+                    contentDescription = "Note Thumbnail",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+        }
     }
 }
 
