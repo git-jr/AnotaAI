@@ -1,4 +1,4 @@
-package com.alura.anotaai.ui.notescreen
+package com.alura.anotaai.ui.notes
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement

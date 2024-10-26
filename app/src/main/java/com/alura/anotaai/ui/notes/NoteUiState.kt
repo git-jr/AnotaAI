@@ -1,4 +1,4 @@
-package com.alura.anotaai.ui.notescreen
+package com.alura.anotaai.ui.notes
 
 import com.alura.anotaai.model.Note
 

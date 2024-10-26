@@ -1,9 +1,8 @@
-package com.alura.anotaai.ui.notescreen
+package com.alura.anotaai.ui.notes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alura.anotaai.model.BaseNote
-import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteItemAudio
 import com.alura.anotaai.model.NoteItemImage
 import com.alura.anotaai.model.NoteItemText

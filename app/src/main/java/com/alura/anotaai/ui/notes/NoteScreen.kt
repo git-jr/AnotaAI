@@ -1,4 +1,4 @@
-package com.alura.anotaai.ui.notescreen
+package com.alura.anotaai.ui.notes
 
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult

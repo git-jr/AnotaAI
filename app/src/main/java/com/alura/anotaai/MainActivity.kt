@@ -37,11 +37,7 @@ class MainActivity : ComponentActivity() {
 
     private fun startRecording(audioPath: String) {
         val context = this
-        val mediaRecorder: MediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(context)
-        } else {
-            MediaRecorder()
-        }
+        val mediaRecorder = MediaRecorder()
         recorder = mediaRecorder
             .apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)

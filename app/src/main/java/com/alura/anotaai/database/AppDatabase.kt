@@ -9,9 +9,13 @@ import com.alura.anotaai.database.entities.TextNoteEntity
 
 
 @Database(
-    entities = [NoteEntity::class, TextNoteEntity::class, AudioNoteEntity::class, ImageNoteEntity::class],
+    entities = [NoteEntity::class,
+        TextNoteEntity::class,
+        AudioNoteEntity::class,
+        ImageNoteEntity::class
+    ],
     version = 1,
-    exportSchema = true,
+    exportSchema = true
 )
 
 abstract class AppDatabase : RoomDatabase() {

@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.alura.anotaai.ui.home.HomeScreen
-import com.alura.anotaai.ui.notescreen.NoteScreen
+import com.alura.anotaai.ui.notes.NoteScreen
 
 @Composable
 fun NavHost(

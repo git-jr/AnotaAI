@@ -2,7 +2,6 @@ package com.alura.anotaai.ui.camera
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.OptIn
@@ -11,7 +10,6 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +17,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
@@ -32,16 +29,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
-import java.io.FileOutputStream
-import java.io.IOException
+import com.alura.anotaai.R
+import com.alura.anotaai.extensions.rotateBitmap
+import com.alura.anotaai.extensions.saveBitmapToInternalStorage
 import java.util.concurrent.Executor
-
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
@@ -55,20 +52,16 @@ fun CameraScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // 1 Camera Controller
         val context = LocalContext.current
         val cameraController = remember {
             LifecycleCameraController(context)
         }
 
-        // 2 Camera Preview
         Box(
             modifier = Modifier
                 .fillMaxSize(),
         ) {
             CameraPreview(cameraController)
-            // Botão para capturar a foto
-
             Card(
                 modifier = Modifier
                     .padding(bottom = 56.dp)
@@ -84,10 +77,13 @@ fun CameraScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.AccountBox,
+                        painterResource(R.drawable.ic_camera),
                         contentDescription = "Camera",
                     )
-                    Text("Tirar foto")
+                    Text(
+                        "Tirar foto",
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
                 }
             }
         }
@@ -109,7 +105,7 @@ fun CameraScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(56.dp),
+                        .padding(horizontal = 16.dp, vertical = 56.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
@@ -124,16 +120,15 @@ fun CameraScreen(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Camera",
                             )
-                            Text("Tirar outra")
+                            Text("Tirar outra", modifier = Modifier.padding(horizontal = 8.dp))
                         }
                     }
 
                     Card(
                         onClick = {
                             capturedImage?.let {
-                                saveBitmapToInternalStorage(
+                                it.saveBitmapToInternalStorage(
                                     context,
-                                    it,
                                     onSaved = { filePath ->
                                         onImageSaved(filePath)
                                         capturedImage = null
@@ -155,7 +150,7 @@ fun CameraScreen(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = "Camera",
                             )
-                            Text("Usar foto")
+                            Text("Usar foto", modifier = Modifier.padding(horizontal = 8.dp))
                         }
                     }
                 }
@@ -183,46 +178,9 @@ private fun capturePhoto(
         }
 
         override fun onError(exception: ImageCaptureException) {
-            Log.e("CameraContent", "Error capturing image", exception)
+            Log.e("CameraContent", "Error ao capturar imagem", exception)
         }
     })
 }
 
-// Função para rotacionar o Bitmap
-fun Bitmap.rotateBitmap(rotationDegrees: Int): Bitmap {
-    val matrix = Matrix().apply {
-        postRotate(-rotationDegrees.toFloat())
-        postScale(-1f, -1f)
-    }
-
-    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
-}
-
-
-// Função para salvar o Bitmap no armazenamento interno
-private fun saveBitmapToInternalStorage(
-    context: Context, bitmap: Bitmap,
-    onSaved: (String) -> Unit = {},
-    onError: (String) -> Unit = {}
-) {
-    // filename com data e hora atual
-    val fileName = "image_${System.currentTimeMillis()}.jpg"
-    var fileOutputStream: FileOutputStream? = null
-    try {
-        fileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-        bitmap.compress(
-            Bitmap.CompressFormat.JPEG,
-            100,
-            fileOutputStream
-        ) // Salva em JPEG, qualidade 100
-        Log.d("CameraContent", "Image saved successfully in internal storage")
-        val filePath = context.getFileStreamPath(fileName).absolutePath
-        onSaved(filePath)
-    } catch (e: IOException) {
-        Log.e("CameraContent", "Error saving image", e)
-        onError("Erro ao salvar a imagem")
-    } finally {
-        fileOutputStream?.close()
-    }
-}
 
