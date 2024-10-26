@@ -34,4 +34,8 @@ class HomeViewModel @Inject constructor(
             _uiState.value = HomeUiState(notes = it)
         }
     }
+
+    fun setItemToDelete(item: Note?) {
+        _uiState.value = _uiState.value.copy(itemToDelete = item)
+    }
 }

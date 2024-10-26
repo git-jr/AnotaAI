@@ -68,7 +68,6 @@ fun NoteScreen(
     ) { permissions ->
         if (permissions.values.all { it }) {
             permissionGranted = true
-            Toast.makeText(context, "Permissão concedida", Toast.LENGTH_SHORT).show()
         }
     }
 

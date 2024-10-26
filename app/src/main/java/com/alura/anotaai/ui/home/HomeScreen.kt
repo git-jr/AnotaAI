@@ -3,6 +3,7 @@ package com.alura.anotaai.ui.home
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,23 +15,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -45,6 +49,7 @@ import com.alura.anotaai.model.Note
 import com.alura.anotaai.model.NoteType
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -61,12 +66,25 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Anota Aí",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleLarge
-                )
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Anota Aí",
+                            style = MaterialTheme.typography.titleLarge,
 
+                            )
+                    },
+                    actions = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    }
+                )
                 HorizontalDivider()
             }
         },
@@ -81,34 +99,47 @@ fun HomeScreen(
         content = { paddingValues ->
             Crossfade(targetState = state.notes.isNotEmpty(), label = "hasItems") { hasItems ->
                 if (hasItems) {
-                    var itemToDelete by remember { mutableStateOf<Note?>(null) }
-                    LazyColumn(
+                    Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(16.dp)
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.BottomStart
                     ) {
-                        items(state.notes) { item ->
-                            ItemNote(
-                                note = item,
-                                onClick = { onOpenNote(item.id) },
-                                onLongPress = {
-                                    itemToDelete = item
-                                }
-                            )
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(8.dp)
+                        ) {
+                            items(state.notes) { item ->
+                                ItemNote(
+                                    note = item,
+                                    onClick = { onOpenNote(item.id) },
+                                    onLongPress = {
+                                        viewModel.setItemToDelete(item)
+                                    }
+                                )
+                            }
                         }
+
+                        AsyncImage(
+                            R.mipmap.ic_launcher_foreground,
+                            contentDescription = "App Logo",
+                            modifier = Modifier
+                                .size(500.dp)
+                                .alpha(0.1f),
+                        )
                     }
 
-                    itemToDelete?.let { itemId ->
+                    state.itemToDelete?.let { itemId ->
                         AlertDialog(
-                            onDismissRequest = { itemToDelete = null },
+                            onDismissRequest = { viewModel.setItemToDelete(null) },
                             title = { Text(text = "Confirmação de Exclusão") },
                             text = { Text("Tem certeza que deseja excluir este item?") },
                             confirmButton = {
                                 Button(
                                     onClick = {
-                                        itemToDelete = null
+                                        viewModel.setItemToDelete(null)
                                         viewModel.removeNote(itemId)
                                     }
                                 ) {
@@ -117,7 +148,7 @@ fun HomeScreen(
                             },
                             dismissButton = {
                                 Button(
-                                    onClick = { itemToDelete = null }
+                                    onClick = { viewModel.setItemToDelete(null) }
                                 ) {
                                     Text("Não")
                                 }
@@ -175,12 +206,11 @@ fun ItemNote(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            val thumb = if (note.thumbnail == NoteType.AUDIO.name) {
-                R.drawable.ic_mic
-            } else if (note.thumbnail == NoteType.TEXT.name) {
-                R.drawable.ic_title
-            } else {
-                note.thumbnail
+            // fazer o codigo acima mas com when
+            val thumbnail = when (note.thumbnail) {
+                NoteType.AUDIO.name -> R.drawable.ic_mic
+                NoteType.TEXT.name -> R.drawable.ic_title
+                else -> note.thumbnail
             }
 
 
@@ -207,7 +237,7 @@ fun ItemNote(
                     .size(70.dp),
             ) {
                 AsyncImage(
-                    thumb,
+                    thumbnail,
                     contentDescription = "Note Thumbnail",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
