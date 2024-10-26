@@ -27,4 +27,7 @@ interface TextNoteDao {
 
     @Query("DELETE FROM TextNotes WHERE idMainNote = :idMainNote")
     suspend fun deleteByIdMainNote(idMainNote: String)
+
+    @Query("DELETE FROM TextNotes")
+    suspend fun deleteAll()
 }

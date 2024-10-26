@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.alura.anotaai.ui.home.HomeScreen
 import com.alura.anotaai.ui.notes.NoteScreen
+import com.alura.anotaai.ui.settings.SettingsScreen
 
 @Composable
 fun NavHost(
@@ -29,6 +30,9 @@ fun NavHost(
                 onOpenNote = { noteId ->
                     navController.navigate(NoteRoutes.NoteDetail(noteId))
                 },
+                onOpenProfile = {
+                    navController.navigate(NoteRoutes.Settings)
+                }
             )
         }
 
@@ -41,6 +45,12 @@ fun NavHost(
                 onStopRecording = stopRecording,
                 onPlayAudio = { startPlaying(it) },
                 onStopAudio = stopPlaying
+            )
+        }
+
+        composable<NoteRoutes.Settings> {
+            SettingsScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -54,7 +56,8 @@ import com.alura.anotaai.model.NoteType
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onAddNewNote: () -> Unit = {},
-    onOpenNote: (String) -> Unit = {}
+    onOpenNote: (String) -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val state by viewModel.uiState.collectAsState()
@@ -69,14 +72,12 @@ fun HomeScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Anota Aí",
-                            style = MaterialTheme.typography.titleLarge,
-
-                            )
+                            text = "Anota Aí", style = MaterialTheme.typography.titleLarge,
+                        )
                     },
                     actions = {
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        IconButton(onClick = { onOpenProfile() }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
                         }
                     },
                     navigationIcon = {
@@ -206,7 +207,6 @@ fun ItemNote(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            // fazer o codigo acima mas com when
             val thumbnail = when (note.thumbnail) {
                 NoteType.AUDIO.name -> R.drawable.ic_mic
                 NoteType.TEXT.name -> R.drawable.ic_title

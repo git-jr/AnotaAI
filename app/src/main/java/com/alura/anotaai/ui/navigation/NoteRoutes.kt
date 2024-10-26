@@ -8,4 +8,7 @@ sealed class NoteRoutes {
 
     @Serializable
     data class NoteDetail(val noteId: String? = null) : NoteRoutes()
+
+    @Serializable
+    data object Settings : NoteRoutes()
 }
