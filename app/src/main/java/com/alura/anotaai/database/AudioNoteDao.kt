@@ -27,7 +27,4 @@ interface AudioNoteDao {
 
     @Query("DELETE FROM AudioNotes WHERE id = :idMainNote")
     suspend fun deleteByIdMainNote(idMainNote: String)
-
-    @Query("DELETE FROM AudioNotes")
-    suspend fun deleteAll()
 }

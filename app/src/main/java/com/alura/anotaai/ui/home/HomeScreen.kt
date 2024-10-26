@@ -98,87 +98,86 @@ fun HomeScreen(
             )
         },
         content = { paddingValues ->
-            Crossfade(targetState = state.notes.isNotEmpty(), label = "hasItems") { hasItems ->
-                if (hasItems) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.BottomStart
-                    ) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(paddingValues),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(8.dp)
-                        ) {
-                            items(state.notes) { item ->
-                                ItemNote(
-                                    note = item,
-                                    onClick = { onOpenNote(item.id) },
-                                    onLongPress = {
-                                        viewModel.setItemToDelete(item)
-                                    }
-                                )
-                            }
-                        }
-
-                        AsyncImage(
-                            R.mipmap.ic_launcher_foreground,
-                            contentDescription = "App Logo",
-                            modifier = Modifier
-                                .size(500.dp)
-                                .alpha(0.1f),
-                        )
-                    }
-
-                    state.itemToDelete?.let { itemId ->
-                        AlertDialog(
-                            onDismissRequest = { viewModel.setItemToDelete(null) },
-                            title = { Text(text = "Confirmação de Exclusão") },
-                            text = { Text("Tem certeza que deseja excluir este item?") },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        viewModel.setItemToDelete(null)
-                                        viewModel.removeNote(itemId)
-                                    }
-                                ) {
-                                    Text("Sim")
-                                }
-                            },
-                            dismissButton = {
-                                Button(
-                                    onClick = { viewModel.setItemToDelete(null) }
-                                ) {
-                                    Text("Não")
-                                }
-                            }
-                        )
-                    }
-                } else {
-                    Column(
+            if (state.notes.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(vertical = 150.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(paddingValues),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(8.dp)
                     ) {
-                        AsyncImage(
-                            R.mipmap.ic_launcher_foreground,
-                            contentDescription = "App Logo",
-                            modifier = Modifier.size(300.dp),
-                        )
-
-                        Text(
-                            text = "Crie suas notas clicando no botão abaixo",
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                            fontSize = 20.sp,
-                            color = MaterialTheme.colorScheme.secondary,
-                            textAlign = TextAlign.Center
-                        )
+                        items(state.notes) { item ->
+                            ItemNote(
+                                note = item,
+                                onClick = { onOpenNote(item.id) },
+                                onLongPress = {
+                                    viewModel.setItemToDelete(item)
+                                }
+                            )
+                        }
                     }
+
+                    AsyncImage(
+                        R.mipmap.ic_launcher_foreground,
+                        contentDescription = "App Logo",
+                        modifier = Modifier
+                            .size(500.dp)
+                            .alpha(0.1f),
+                    )
+                }
+
+                state.itemToDelete?.let { itemId ->
+                    AlertDialog(
+                        onDismissRequest = { viewModel.setItemToDelete(null) },
+                        title = { Text(text = "Confirmação de Exclusão") },
+                        text = { Text("Tem certeza que deseja excluir este item?") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    viewModel.setItemToDelete(null)
+                                    viewModel.removeNote(itemId)
+                                }
+                            ) {
+                                Text("Sim")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { viewModel.setItemToDelete(null) }
+                            ) {
+                                Text("Não")
+                            }
+                        }
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 150.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        R.mipmap.ic_launcher_foreground,
+                        contentDescription = "App Logo",
+                        modifier = Modifier.size(300.dp),
+                    )
+
+                    Text(
+                        text = "Crie suas notas clicando no botão abaixo",
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
+
         }
     )
 }

@@ -70,26 +70,11 @@ fun SettingsScreen(
                     .padding(top = 150.dp, bottom = paddingValues.calculateBottomPadding()),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Logo do app e nome do app
                 AsyncImage(
                     R.mipmap.ic_launcher_foreground,
                     contentDescription = "App Logo",
                     modifier = Modifier.size(300.dp),
                 )
-
-                // Exibir quantas notas foram criadas
-                Text(
-                    text = "Notas criadas: ${state.notesCount}",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                // Botão para excluir todas as notas
-                Button(
-                    onClick = { viewModel.showDeleteDialog(true) }
-                ) {
-                    Text(text = "Excluir todas as notas")
-                }
             }
 
             if (state.showConfirmDeleteDialog) {
@@ -102,7 +87,6 @@ fun SettingsScreen(
                     confirmButton = {
                         Button(
                             onClick = {
-                                viewModel.deleteAllNotes()
                                 viewModel.showDeleteDialog(false)
                             }
                         ) {
@@ -111,9 +95,7 @@ fun SettingsScreen(
                     },
                     dismissButton = {
                         Button(
-                            onClick = {
-                                viewModel.showDeleteDialog(false)
-                            }
+                            onClick = {}
                         ) {
                             Text("Não")
                         }

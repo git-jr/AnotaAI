@@ -27,7 +27,4 @@ interface ImageNoteDao {
 
     @Query("DELETE FROM ImageNotes WHERE id = :idMainNote")
     suspend fun deleteByIdMainNote(idMainNote: String)
-
-    @Query("DELETE FROM ImageNotes")
-    suspend fun deleteAll()
 }
